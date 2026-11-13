@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1B1345" />
+    <title>Sin conexión · Kairos</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: #1b1345; color: #b8b1df;
+        font: 400 16px/24px system-ui, -apple-system, "Segoe UI", sans-serif;
+        display: flex; flex-direction: column; justify-content: center; padding: 0 16px;
+      }
+      img { width: 120px; height: auto; display: block; margin-bottom: 32px; }
+      h1 { color: #f5f3fe; font: 600 28px/34px Georgia, "Times New Roman", serif; margin: 0 0 8px; }
+      p { margin: 0 0 24px; max-width: 32ch; }
+      button {
+        align-self: flex-start; min-height: 48px; padding: 0 24px; border: 0; border-radius: 12px;
+        background: #c5f26a; color: #1b1345; font: 600 15px/20px inherit; font-family: inherit;
+      }
+      button:focus-visible { outline: 2px solid #c5f26a; outline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <img src="/brand/logo-negativo.png" alt="Kairos" />
+    <h1>No hay conexión</h1>
+    <p>Kairos necesita internet para mostrarte tu cartera. Cuando vuelva la señal, seguís donde estabas.</p>
+    <button type="button" onclick="location.reload()">Reintentar</button>
+  </body>
+</html>
