@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# la plantilla de variables sí se versiona
+!.env.example
+
+# material de diseño pesado: queda local hasta decidir si va al repo público
+/docs/design/*.pdf
+/docs/design/*.html
+
+# herramientas locales
+/.claude/
