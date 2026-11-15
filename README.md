@@ -11,7 +11,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | Fase | Qué incluye | Estado |
 |---|---|---|
 | F0 | Setup, tokens de los dos temas, fuentes, logo, componentes del manual, PWA, `/dev/ui` | Hecha |
-| F1 | Capa de datos mock, auth, layouts y tab bar, seed, migraciones y RLS | Pendiente |
+| F1 | Capa de datos mock, auth, layouts y tab bar, seed, migraciones y RLS | Hecha |
 | F2 | Clientes y ficha editable | Pendiente |
 | F3 | Nueva nota: grabación, transcripción, extracción a ficha | Pendiente |
 | F4 | Propiedades: alta manual, pegar aviso, importar | Pendiente |
@@ -49,13 +49,46 @@ Están documentadas en [.env.example](.env.example). Las que no empiezan con `NE
 
 | Variable | Valores | Para qué |
 |---|---|---|
-| `DATA_SOURCE` | `mock` · `supabase` | De dónde salen los datos |
+| `NEXT_PUBLIC_DATA_SOURCE` | `mock` · `supabase` | De dónde salen los datos |
 | `AI_PROVIDER` | `mock` · `anthropic` | Extracción de la ficha y redacción del mensaje |
 | `ANTHROPIC_MODEL` | por defecto `claude-sonnet-5-5` | Modelo de Claude |
 | `TRANSCRIBE_PROVIDER` | `mock` · `webspeech` · `openai` | Transcripción del audio |
 | `NEXT_PUBLIC_DEMO_MODE` | `true` · `false` | Muestra Perfil → Demo |
 
-El seed de Supabase y el modo demo ("Simular propiedad nueva") se documentan acá cuando lleguen sus fases (F1 y F7).
+## Datos
+
+Toda la app lee y escribe a través de una sola interfaz, [lib/data/source.ts](lib/data/source.ts). Hay dos implementaciones:
+
+- **mock** (por defecto): en memoria, guardada en `localStorage`. Imita la RLS: cada lectura filtra por el agente de la sesión.
+- **supabase**: se conecta en la F7. El esquema y la RLS ya están en [supabase/migrations](supabase/migrations).
+
+Ningún id viene fijo del seed: todo se crea con el id del agente logueado. Las keys de las queries empiezan con ese id y la caché se limpia al cerrar sesión.
+
+### Entrar
+
+En modo mock no hace falta contraseña: cualquier email crea una cuenta con la cartera vacía. **Probar la demo** entra como Lucía F., con los datos del prototipo (5 clientes, 30 propiedades, 3 oportunidades).
+
+### Modo demo
+
+Con `NEXT_PUBLIC_DEMO_MODE=true`, en Perfil → Demo está **Restablecer datos de demo**. "Simular propiedad nueva" llega en la F7.
+
+### Seed
+
+Los datos de demo viven en [lib/data/seed/demo.json](lib/data/seed/demo.json). El mock los carga solo. Para Supabase:
+
+```bash
+npm run seed:sql
+```
+
+Eso regenera `supabase/seed.sql`, que define `public.kairos_seed_demo(agente)`. Con un usuario ya registrado:
+
+```sql
+select public.kairos_seed_demo('<uuid del agente>');
+```
+
+### Tests de RLS
+
+[supabase/tests/rls.test.sql](supabase/tests/rls.test.sql) (pgTAP) prueba que cada agente ve solo lo suyo. Corre con `supabase test db`, que necesita Supabase local y Docker. Todavía no se corrió: se valida al conectar Supabase en la F7.
 
 ## Diseño
 

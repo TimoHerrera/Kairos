@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Fraunces, Inter } from "next/font/google";
 import { RegistrarServiceWorker } from "@/components/pwa/registrar-sw";
+import { SessionProvider } from "@/lib/session/provider";
 import { scriptTemaInicial } from "@/lib/theme";
 import "./globals.css";
 
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: scriptTemaInicial }} />
       </head>
       <body className="flex min-h-full flex-col">
-        {children}
+        <SessionProvider>{children}</SessionProvider>
         <RegistrarServiceWorker />
       </body>
     </html>

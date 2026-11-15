@@ -1,4 +1,5 @@
 import { Logo } from "@/components/brand/logo";
+import { SeguirSiHaySesion } from "@/components/app/guardas";
 import { ButtonLink } from "@/components/ui/button";
 
 /**
@@ -9,6 +10,7 @@ import { ButtonLink } from "@/components/ui/button";
 export default function Splash() {
   return (
     <main className="flex flex-1 flex-col bg-noche text-[#b8b1df]">
+      <SeguirSiHaySesion />
       <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col px-4 pt-16 pb-8 md:px-0">
         <Logo version="negativo" ancho={132} />
         <div className="mt-auto">
@@ -18,10 +20,9 @@ export default function Splash() {
           <p className="mt-3 max-w-[30ch] text-cuerpo">
             Kairos recuerda a cada cliente y te avisa cuando aparece su propiedad.
           </p>
-          <ButtonLink href="/dev/ui" ancho="completo" variante="sobreNoche" className="mt-8">
-            Ver componentes
+          <ButtonLink href="/login" ancho="completo" variante="sobreNoche" className="mt-8">
+            Empezar
           </ButtonLink>
-          <p className="mt-4 text-pie text-[#9a93c4]">Fase 0 · base de diseño. El ingreso llega en la fase 1.</p>
         </div>
       </div>
     </main>

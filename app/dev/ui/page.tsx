@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardNumero, CardTexto, CardTitulo } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { ThemeSwitch } from "@/components/ui/theme-switch";
+import { TabBar } from "@/components/app/tab-bar";
+import { Vacio } from "@/components/app/pantalla";
+import { MuestraCampos } from "./muestra-campos";
 import { formatMonto, formatMontoCorto } from "@/lib/format";
 import { RepetirAviso } from "./repetir-aviso";
 
@@ -257,6 +260,22 @@ export default function DevUi() {
             Escribirle
           </Button>
         </Card>
+      </Seccion>
+
+      <Seccion titulo="Campos">
+        <MuestraCampos />
+      </Seccion>
+
+      <Seccion titulo="Tab bar">
+        <div className="max-w-[390px] overflow-hidden rounded-lg border border-linea">
+          <TabBar activa="/hoy" />
+        </div>
+      </Seccion>
+
+      <Seccion titulo="Estado vacío">
+        <div className="max-w-[390px]">
+          <Vacio titulo="Todavía no hay oportunidades">Contale a Kairos de tu primer cliente.</Vacio>
+        </div>
       </Seccion>
 
       <Seccion titulo="Iconografía · Lucide, trazo 1,75">
