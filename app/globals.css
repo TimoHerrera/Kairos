@@ -1,26 +1,299 @@
 @import "tailwindcss";
 
+/* ------------------------------------------------------------------
+   Kairos · tokens del manual de marca (pág. 7 a 11)
+   Los nombres son los del manual. Cada color se usa por su rol.
+   ------------------------------------------------------------------ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Marca */
+  --noche: #1b1345;
+  --noche-2: #241a59;
+  --noche-3: #2b2167;
+  --papel: #f5f3fe;
+  --violeta: #5a41df;
+  --lima: #c5f26a;
+  --lavanda: #a897ff;
+  --lila: #e4deff;
+
+  /* Semánticos · tema claro */
+  --fondo: #f5f3fe;
+  --superficie: #ffffff;
+  --superficie-tinte: #efebff;
+  --tinta: #1b1345;
+  --texto: #49436f;
+  --texto-suave: #6e6898;
+  --acento: #5a41df;
+  --acento-presionado: #4630c2;
+  --sobre-acento: #ffffff;
+  --destacado: #1b1345;
+  --sobre-destacado: #f5f3fe;
+  --texto-destacado: #b8b1df;
+  --chip: #e4deff;
+  --sobre-chip: #5a41df;
+  --linea: #e7e3f9;
+  --linea-control: #8c85b5;
+  --foco: #5a41df;
+  --exito: #2e7d4f;
+  --alerta: #a35c00;
+  --error: #c2334d;
+  --exito-tinte: #e4f2ea;
+  --alerta-tinte: #fff1dc;
+  --error-tinte: #fce9ec;
+
+  /* Una sola sombra, solo para lo que flota */
+  --sombra-flotante: 0 8px 24px rgba(27, 19, 69, 0.12);
+
+  /* Espaciado base 4 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Radios */
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 16px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  color-scheme: light;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Tema oscuro: el acento pasa de violeta a lima solo. */
+:root[data-theme="dark"] {
+  --fondo: #1b1345;
+  --superficie: #241a59;
+  --superficie-tinte: #2b2167;
+  --tinta: #f5f3fe;
+  --texto: #b8b1df;
+  --texto-suave: #9a93c4;
+  --acento: #c5f26a;
+  --acento-presionado: #b4e052;
+  --sobre-acento: #1b1345;
+  --destacado: #2b2167;
+  --sobre-destacado: #f5f3fe;
+  --texto-destacado: #b8b1df;
+  --chip: #2b2167;
+  --sobre-chip: #c5f26a;
+  --linea: #34296f;
+  --linea-control: #857ac4;
+  --foco: #c5f26a;
+  --exito: #8fd9a8;
+  --alerta: #f2b866;
+  --error: #ff8fa3;
+  --exito-tinte: #23324f;
+  --alerta-tinte: #3a2c4a;
+  --error-tinte: #40224f;
+  --sombra-flotante: 0 8px 24px rgba(0, 0, 0, 0.32);
+  color-scheme: dark;
 }
 
+/* Sin JavaScript, el tema sigue al sistema. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme]) {
+    --fondo: #1b1345;
+    --superficie: #241a59;
+    --superficie-tinte: #2b2167;
+    --tinta: #f5f3fe;
+    --texto: #b8b1df;
+    --texto-suave: #9a93c4;
+    --acento: #c5f26a;
+    --acento-presionado: #b4e052;
+    --sobre-acento: #1b1345;
+    --destacado: #2b2167;
+    --chip: #2b2167;
+    --sobre-chip: #c5f26a;
+    --linea: #34296f;
+    --linea-control: #857ac4;
+    --foco: #c5f26a;
+    --exito: #8fd9a8;
+    --alerta: #f2b866;
+    --error: #ff8fa3;
+    --exito-tinte: #23324f;
+    --alerta-tinte: #3a2c4a;
+    --error-tinte: #40224f;
+    --sombra-flotante: 0 8px 24px rgba(0, 0, 0, 0.32);
+    color-scheme: dark;
   }
 }
 
+@theme inline {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-noche: var(--noche);
+  --color-noche-2: var(--noche-2);
+  --color-noche-3: var(--noche-3);
+  --color-papel: var(--papel);
+  --color-violeta: var(--violeta);
+  --color-lima: var(--lima);
+  --color-lavanda: var(--lavanda);
+  --color-lila: var(--lila);
+
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-tinte: var(--superficie-tinte);
+  --color-tinta: var(--tinta);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-acento: var(--acento);
+  --color-acento-presionado: var(--acento-presionado);
+  --color-sobre-acento: var(--sobre-acento);
+  --color-destacado: var(--destacado);
+  --color-sobre-destacado: var(--sobre-destacado);
+  --color-texto-destacado: var(--texto-destacado);
+  --color-chip: var(--chip);
+  --color-sobre-chip: var(--sobre-chip);
+  --color-linea: var(--linea);
+  --color-linea-control: var(--linea-control);
+  --color-foco: var(--foco);
+  --color-exito: var(--exito);
+  --color-alerta: var(--alerta);
+  --color-error: var(--error);
+  --color-exito-tinte: var(--exito-tinte);
+  --color-alerta-tinte: var(--alerta-tinte);
+  --color-error-tinte: var(--error-tinte);
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* rounded-sm 8 · rounded-md 12 · rounded-lg 16 · rounded-xl 28 · rounded-full */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 28px;
+
+  --shadow-*: initial;
+  --shadow-flotante: var(--sombra-flotante);
+}
+
+/* Escala tipográfica del manual (pág. 10) */
+@utility text-cifra {
+  font: 600 96px/96px var(--font-display);
+  letter-spacing: -0.02em;
+}
+@utility text-titulo-xl {
+  font: 600 56px/60px var(--font-display);
+  letter-spacing: -0.02em;
+}
+@utility text-titulo-l {
+  font: 600 40px/46px var(--font-display);
+  letter-spacing: -0.015em;
+}
+@utility text-titulo-m {
+  font: 600 28px/34px var(--font-display);
+  letter-spacing: -0.01em;
+}
+@utility text-titulo-s {
+  font: 600 22px/28px var(--font-display);
+  letter-spacing: -0.01em;
+}
+@utility text-subtitulo {
+  font: 600 20px/28px var(--font-sans);
+}
+@utility text-cuerpo-l {
+  font: 400 18px/28px var(--font-sans);
+}
+@utility text-cuerpo {
+  font: 400 16px/24px var(--font-sans);
+}
+@utility text-cuerpo-s {
+  font: 400 14px/20px var(--font-sans);
+}
+@utility text-boton {
+  font: 600 15px/20px var(--font-sans);
+}
+@utility text-eyebrow {
+  font: 600 13px/16px var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@utility text-pie {
+  font: 400 12px/16px var(--font-sans);
+}
+
+html {
+  background: var(--fondo);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  font: 400 16px/24px var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Anillo de foco: 2 px sólido con 2 px de separación */
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* El aviso entra deslizando 8 px con fundido, en 200 ms. Nada rebota. */
+@keyframes aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes solo-opacidad {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@utility animate-aviso {
+  animation: aviso-entra 200ms var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-aviso {
+    animation: solo-opacidad 200ms linear both;
+  }
+}
+
+/* El logo cambia de versión con el tema: positivo sobre claro, negativo sobre oscuro. */
+.solo-oscuro {
+  display: none;
+}
+:root[data-theme="dark"] .solo-oscuro {
+  display: block;
+}
+:root[data-theme="dark"] .solo-claro {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .solo-oscuro {
+    display: block;
+  }
+  :root:not([data-theme]) .solo-claro {
+    display: none;
+  }
+}
+
+/* Al cambiar de tema, los colores saltan de una vez. */
+.sin-transiciones,
+.sin-transiciones * {
+  transition: none !important;
 }
