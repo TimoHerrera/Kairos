@@ -5,6 +5,7 @@ import {
   normalizeEmail,
   type DataSource,
   type NewBuyer,
+  type NewDiscard,
   type Session,
 } from "../source";
 import {
@@ -12,6 +13,7 @@ import {
   type Agent,
   type Buyer,
   type BuyerCriteria,
+  type Discard,
   type Id,
   type MatchWithRefs,
   type Message,
@@ -371,6 +373,40 @@ export function createMockDataSource(
         return mine(db.discards)
           .filter((d) => d.buyer_id === buyerId)
           .map((d) => ({ ...d, property: propiedades.find((p) => p.id === d.property_id) ?? null }));
+      },
+      async addDiscard(buyerId, datos: NewDiscard) {
+        const { agentId, db, mine } = scoped();
+        if (!mine(db.buyers).some((b) => b.id === buyerId)) {
+          throw new DataError("not_found", "No encontramos ese cliente.");
+        }
+        const motivo = datos.reason.trim();
+        if (!motivo) throw new DataError("invalid", "Contá por qué la descartó.");
+        const propiedad = datos.property_id
+          ? (mine(db.properties).find((p) => p.id === datos.property_id) ?? null)
+          : null;
+        if (datos.property_id && !propiedad) throw new DataError("not_found", "No encontramos esa propiedad.");
+        const texto = datos.property_text?.trim() || null;
+        if (!propiedad && !texto) throw new DataError("invalid", "Indicá qué propiedad descartó.");
+        const descarte: Discard = {
+          id: newId(),
+          agent_id: agentId,
+          buyer_id: buyerId,
+          property_id: propiedad?.id ?? null,
+          property_text: propiedad ? null : texto,
+          reason: motivo,
+          created_at: now().toISOString(),
+        };
+        db.discards.push(descarte);
+        save(db);
+        return { ...descarte, property: propiedad };
+      },
+      async removeDiscard(discardId) {
+        const { db, mine } = scoped();
+        if (!mine(db.discards).some((d) => d.id === discardId)) {
+          throw new DataError("not_found", "No encontramos ese descarte.");
+        }
+        db.discards = db.discards.filter((d) => d.id !== discardId);
+        save(db);
       },
     },
 

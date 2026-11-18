@@ -100,7 +100,10 @@ export default function Hoy() {
             <ul className="space-y-3">
               {lista.map((m) => (
                 <li key={m.id}>
-                  <Card>
+                  <Link
+                    href={`/clientes/${m.buyer.id}`}
+                    className="block rounded-lg border border-linea bg-superficie p-4 hover:bg-superficie-tinte"
+                  >
                     <FilaCliente
                       nombre={m.buyer.name}
                       detalle={direccionPropiedad(m.property)}
@@ -115,7 +118,7 @@ export default function Hoy() {
                         </>
                       }
                     />
-                  </Card>
+                  </Link>
                 </li>
               ))}
             </ul>

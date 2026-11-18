@@ -207,3 +207,42 @@ describe("clientes", () => {
     expect(despues.must_haves).toEqual(["balcon", "luminoso"]);
   });
 });
+
+describe("descartes", () => {
+  it("agrega un descarte con una propiedad cargada o con texto libre", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const diego = (await ds.buyers.list()).find((c) => c.name === "Diego Ruiz")!;
+    const malabia = (await ds.properties.list()).find((p) => p.address === "Malabia 900")!;
+
+    const a = await ds.buyers.addDiscard(diego.id, { property_id: malabia.id, reason: " Hay que refaccionar todo " });
+    expect(a.property?.address).toBe("Malabia 900");
+    expect(a.reason).toBe("Hay que refaccionar todo");
+
+    await ds.buyers.addDiscard(diego.id, { property_text: "Un 2 amb sobre Warnes", reason: "Mucho ruido" });
+    const lista = await ds.buyers.listDiscards(diego.id);
+    expect(lista.map((d) => d.property?.address ?? d.property_text)).toEqual(["Malabia 900", "Un 2 amb sobre Warnes"]);
+  });
+
+  it("pide motivo y propiedad", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const diego = (await ds.buyers.list()).find((c) => c.name === "Diego Ruiz")!;
+    await expect(ds.buyers.addDiscard(diego.id, { property_text: "Algo", reason: "  " })).rejects.toMatchObject({ code: "invalid" });
+    await expect(ds.buyers.addDiscard(diego.id, { reason: "Caro" })).rejects.toMatchObject({ code: "invalid" });
+  });
+
+  it("quita un descarte, y solo si es propio", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const martina = (await ds.buyers.list())[0];
+    const [primero] = await ds.buyers.listDiscards(martina.id);
+    await ds.auth.signOut();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    await expect(ds.buyers.removeDiscard(primero.id)).rejects.toMatchObject({ code: "not_found" });
+    await ds.auth.signOut();
+    await ds.auth.signInDemo();
+    await ds.buyers.removeDiscard(primero.id);
+    expect(await ds.buyers.listDiscards(martina.id)).toHaveLength(1);
+  });
+});

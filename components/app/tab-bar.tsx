@@ -12,10 +12,13 @@ const TABS = [
   { href: "/perfil", etiqueta: "Perfil", Icono: User },
 ] as const;
 
+/** Navegación principal según la URL actual. Va dentro de <Suspense>: lee la URL. */
+export function TabBar() {
+  return <TabBarBase actual={usePathname()} />;
+}
+
 /** Navegación principal: Hoy · Clientes · Propiedades · Perfil. Íconos de 24 px, acento en el activo. */
-export function TabBar({ activa }: { activa?: string }) {
-  const pathname = usePathname();
-  const actual = activa ?? pathname;
+export function TabBarBase({ actual }: { actual: string }) {
   return (
     <nav
       aria-label="Principal"

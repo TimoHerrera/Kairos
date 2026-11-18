@@ -37,6 +37,9 @@ export interface DataSource {
     updateCriteria(buyerId: Id, cambios: Partial<Omit<BuyerCriteria, "buyer_id" | "agent_id">>): Promise<BuyerCriteria>;
     listNotes(buyerId: Id): Promise<Note[]>;
     listDiscards(buyerId: Id): Promise<DiscardWithProperty[]>;
+    /** Un descarte apunta a una propiedad cargada o, si no lo está, a un texto libre. */
+    addDiscard(buyerId: Id, datos: NewDiscard): Promise<DiscardWithProperty>;
+    removeDiscard(discardId: Id): Promise<void>;
   };
   properties: {
     list(): Promise<Property[]>;
@@ -56,6 +59,12 @@ export type NewBuyer = {
   phone?: string | null;
   email?: string | null;
   status?: BuyerStatus;
+};
+
+export type NewDiscard = {
+  property_id?: Id | null;
+  property_text?: string | null;
+  reason: string;
 };
 
 export type Session = { agentId: Id; email: string };
