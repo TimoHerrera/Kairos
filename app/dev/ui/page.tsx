@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardNumero, CardTexto, CardTitulo } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { ThemeSwitch } from "@/components/ui/theme-switch";
-import { TabBar } from "@/components/app/tab-bar";
+import { TabBarBase } from "@/components/app/tab-bar";
 import { Vacio } from "@/components/app/pantalla";
 import { MuestraCampos } from "./muestra-campos";
 import { formatMonto, formatMontoCorto } from "@/lib/format";
@@ -268,7 +268,7 @@ export default function DevUi() {
 
       <Seccion titulo="Tab bar">
         <div className="max-w-[390px] overflow-hidden rounded-lg border border-linea">
-          <TabBar activa="/hoy" />
+          <TabBarBase actual="/hoy" />
         </div>
       </Seccion>
 

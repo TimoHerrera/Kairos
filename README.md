@@ -12,7 +12,7 @@ Proyecto de tesis · Universidad de San Andrés.
 |---|---|---|
 | F0 | Setup, tokens de los dos temas, fuentes, logo, componentes del manual, PWA, `/dev/ui` | Hecha |
 | F1 | Capa de datos mock, auth, layouts y tab bar, seed, migraciones y RLS | Hecha |
-| F2 | Clientes y ficha editable | Pendiente |
+| F2 | Clientes y ficha editable | Hecha |
 | F3 | Nueva nota: grabación, transcripción, extracción a ficha | Pendiente |
 | F4 | Propiedades: alta manual, pegar aviso, importar | Pendiente |
 | F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Pendiente |
