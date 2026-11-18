@@ -6,6 +6,7 @@ import {
   type DataSource,
   type NewBuyer,
   type NewDiscard,
+  type NewNote,
   type Session,
 } from "../source";
 import {
@@ -14,6 +15,7 @@ import {
   type Buyer,
   type BuyerCriteria,
   type Discard,
+  type Note,
   type Id,
   type MatchWithRefs,
   type Message,
@@ -373,6 +375,29 @@ export function createMockDataSource(
         return mine(db.discards)
           .filter((d) => d.buyer_id === buyerId)
           .map((d) => ({ ...d, property: propiedades.find((p) => p.id === d.property_id) ?? null }));
+      },
+      async addNote(buyerId, datos: NewNote) {
+        const { agentId, db, mine } = scoped();
+        if (!mine(db.buyers).some((b) => b.id === buyerId)) {
+          throw new DataError("not_found", "No encontramos ese cliente.");
+        }
+        const texto = datos.transcript?.trim() || null;
+        if (!texto && !datos.audio_path) throw new DataError("invalid", "La nota está vacía.");
+        const nota: Note = {
+          id: newId(),
+          agent_id: agentId,
+          buyer_id: buyerId,
+          kind: datos.kind,
+          audio_path: datos.audio_path ?? null,
+          duration_seconds: datos.duration_seconds ?? null,
+          transcript: texto,
+          extracted_json: datos.extracted_json ?? null,
+          changes: datos.changes ?? [],
+          created_at: now().toISOString(),
+        };
+        db.notes.push(nota);
+        save(db);
+        return nota;
       },
       async addDiscard(buyerId, datos: NewDiscard) {
         const { agentId, db, mine } = scoped();

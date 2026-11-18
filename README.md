@@ -13,7 +13,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | F0 | Setup, tokens de los dos temas, fuentes, logo, componentes del manual, PWA, `/dev/ui` | Hecha |
 | F1 | Capa de datos mock, auth, layouts y tab bar, seed, migraciones y RLS | Hecha |
 | F2 | Clientes y ficha editable | Hecha |
-| F3 | Nueva nota: grabación, transcripción, extracción a ficha | Pendiente |
+| F3 | Nueva nota: grabación, transcripción, extracción a ficha | Hecha (IA en modo mock) |
 | F4 | Propiedades: alta manual, pegar aviso, importar | Pendiente |
 | F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Pendiente |
 | F6 | Mensaje de WhatsApp, Web Push, bandeja | Pendiente |
@@ -52,8 +52,22 @@ Están documentadas en [.env.example](.env.example). Las que no empiezan con `NE
 | `NEXT_PUBLIC_DATA_SOURCE` | `mock` · `supabase` | De dónde salen los datos |
 | `AI_PROVIDER` | `mock` · `anthropic` | Extracción de la ficha y redacción del mensaje |
 | `ANTHROPIC_MODEL` | por defecto `claude-sonnet-5-5` | Modelo de Claude |
-| `TRANSCRIBE_PROVIDER` | `mock` · `webspeech` · `openai` | Transcripción del audio |
+| `TRANSCRIBE_PROVIDER` | `mock` · `webspeech` · `openai` | Transcripción del audio (ver abajo) |
 | `NEXT_PUBLIC_DEMO_MODE` | `true` · `false` | Muestra Perfil → Demo |
+
+## Notas de voz
+
+"Grabar audio" abre la nueva nota: el agente graba (hasta 3 minutos) o escribe, toca **Armar ficha** y Kairos actualiza la ficha del cliente mostrando qué cambió, sin pisar lo anterior. Si la nota es de un cliente nuevo, saca el nombre del audio y pregunta antes de duplicar uno que ya existe.
+
+| `TRANSCRIBE_PROVIDER` | Qué hace |
+|---|---|
+| `mock` (por defecto) | No usa el micrófono: "escucha" textos fijos de la demo. Para presentar sin depender de la red. |
+| `webspeech` | El navegador transcribe en vivo, en español rioplatense. Gratis. Anda bien en Chrome y Edge; en iPhone es irregular. |
+| `openai` | Graba el audio y lo transcribe el servidor al terminar. Necesita `OPENAI_API_KEY`. |
+
+La extracción de la ficha corre siempre en el servidor (`/api/ai/extract`). Con `AI_PROVIDER=mock` usa reglas locales que entienden las notas de la demo; el proveedor de Claude se conecta en la F7 (el prompt ya está en [lib/ai/extract/prompt.ts](lib/ai/extract/prompt.ts)). A la IA se le manda solo el texto de la nota y un resumen de la ficha, nunca el teléfono ni el email del cliente.
+
+En modo mock los audios no se guardan: la nota queda con la transcripción. Guardarlos en Supabase Storage llega con la F7.
 
 ## Datos
 
