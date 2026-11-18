@@ -36,6 +36,7 @@ export interface DataSource {
     getCriteria(buyerId: Id): Promise<BuyerCriteria | null>;
     updateCriteria(buyerId: Id, cambios: Partial<Omit<BuyerCriteria, "buyer_id" | "agent_id">>): Promise<BuyerCriteria>;
     listNotes(buyerId: Id): Promise<Note[]>;
+    addNote(buyerId: Id, datos: NewNote): Promise<Note>;
     listDiscards(buyerId: Id): Promise<DiscardWithProperty[]>;
     /** Un descarte apunta a una propiedad cargada o, si no lo está, a un texto libre. */
     addDiscard(buyerId: Id, datos: NewDiscard): Promise<DiscardWithProperty>;
@@ -60,6 +61,9 @@ export type NewBuyer = {
   email?: string | null;
   status?: BuyerStatus;
 };
+
+export type NewNote = Pick<Note, "kind" | "transcript"> &
+  Partial<Pick<Note, "audio_path" | "duration_seconds" | "extracted_json" | "changes">>;
 
 export type NewDiscard = {
   property_id?: Id | null;

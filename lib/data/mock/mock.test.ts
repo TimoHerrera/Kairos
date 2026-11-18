@@ -246,3 +246,34 @@ describe("descartes", () => {
     expect(await ds.buyers.listDiscards(martina.id)).toHaveLength(1);
   });
 });
+
+describe("notas", () => {
+  it("agrega una nota al historial, la más nueva primero", async () => {
+    let n = 0;
+    let reloj = new Date("2026-11-12T18:32:00-03:00");
+    const ds = createMockDataSource({ storage: memoryStorage(), newId: () => `id-${++n}`, now: () => reloj });
+    await ds.auth.signInDemo();
+    const martina = (await ds.buyers.list())[0];
+    reloj = new Date("2026-11-13T10:00:00-03:00");
+    const nota = await ds.buyers.addNote(martina.id, {
+      kind: "audio",
+      transcript: " Subió el tope a 185 mil. ",
+      duration_seconds: 9,
+      changes: ["Subió el tope a USD 185.000"],
+    });
+    expect(nota).toMatchObject({ transcript: "Subió el tope a 185 mil.", audio_path: null, buyer_id: martina.id });
+    const notas = await ds.buyers.listNotes(martina.id);
+    expect(notas).toHaveLength(2);
+    expect(notas[0].changes).toEqual(["Subió el tope a USD 185.000"]);
+  });
+
+  it("no acepta notas vacías ni de clientes ajenos", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const martina = (await ds.buyers.list())[0];
+    await expect(ds.buyers.addNote(martina.id, { kind: "text", transcript: "  " })).rejects.toMatchObject({ code: "invalid" });
+    await ds.auth.signOut();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    await expect(ds.buyers.addNote(martina.id, { kind: "text", transcript: "Hola" })).rejects.toMatchObject({ code: "not_found" });
+  });
+});
