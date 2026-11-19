@@ -16,7 +16,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | F3 | Nueva nota: grabación, transcripción, extracción a ficha | Hecha (IA en modo mock) |
 | F4 | Propiedades: alta manual, pegar aviso, importar | Hecha (lectura de avisos en modo mock) |
 | F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Hecha |
-| F6 | Mensaje de WhatsApp, Web Push, bandeja | Pendiente |
+| F6 | Mensaje de WhatsApp, Web Push, bandeja | Hecha (mensaje por plantilla en modo mock) |
 | F7 | Supabase e IA reales, privacidad, modo demo, E2E, deploy | Pendiente |
 
 ## Setup local
@@ -94,6 +94,20 @@ El motor de coincidencias está en [lib/match](lib/match/motor.ts): funciones pu
 Las oportunidades se recalculan solas al cargar o importar una propiedad (contra todos los clientes activos), al editar una ficha, al cambiar descartes y al guardar una nota. Si superan el umbral de alerta del agente (75% por defecto) se crean como nuevas y aparecen en Hoy. Si dejan de encajar se borran, salvo que ya se hayan mandado o descartado.
 
 Caso Martina (en los tests): Gorriti 4800 da 92% y cumple 6 de 7; Av. Santa Fe 3900 queda afuera por avenida y Thames 1700 por planta baja.
+
+## Mensaje y avisos
+
+**Mensaje de WhatsApp.** En la oportunidad, "Mandársela" abre una hoja con el mensaje armado con lo que se sabe del cliente: editable, con "Más corto", "Más formal" y "Agregar fotos" (el link del aviso). "Enviar por WhatsApp" abre `wa.me` con el texto, guarda el mensaje, marca la oportunidad como enviada y confirma "Enviado a Martina". A la IA va solo el nombre de pila del cliente y los datos de la propiedad. En modo mock se redacta con plantillas; el prompt de Claude está en [lib/ai/message](lib/ai/message/index.ts).
+
+**Avisos.** Cuando aparece una oportunidad nueva, Kairos avisa respetando el umbral y el horario de no molestar (Perfil → Avisos). Con claves VAPID el aviso es un push real y llega con la app cerrada; sin claves, es una notificación local con la app abierta. El push está implementado con el crypto de Node (firma VAPID y cifrado aes128gcm), sin dependencias, y [/api/push/send](app/api/push/send/route.ts) solo manda a servicios de push conocidos.
+
+```bash
+npm run vapid
+```
+
+Eso imprime las tres variables para `.env.local` y Vercel. En iPhone, los avisos solo llegan con Kairos instalado en la pantalla de inicio.
+
+**Bandeja.** La campana de Hoy muestra cuántas oportunidades hay sin ver y abre la bandeja con todos los avisos.
 
 ## Datos
 

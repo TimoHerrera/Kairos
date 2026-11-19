@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Fraunces, Inter } from "next/font/google";
+import Script from "next/script";
 import { RegistrarServiceWorker } from "@/components/pwa/registrar-sw";
 import { SessionProvider } from "@/lib/session/provider";
 import { scriptTemaInicial } from "@/lib/theme";
@@ -38,10 +39,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es-AR" className={`${fraunces.variable} ${inter.variable} h-full`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: scriptTemaInicial }} />
-      </head>
       <body className="flex min-h-full flex-col">
+        {/* Elige el tema antes de pintar, para que no parpadee. */}
+        <Script id="tema-inicial" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: scriptTemaInicial }} />
         <SessionProvider>{children}</SessionProvider>
         <RegistrarServiceWorker />
       </body>

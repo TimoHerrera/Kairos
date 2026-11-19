@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Clock, Mic } from "lucide-react";
+import { Bell, Check, Clock, Mic } from "lucide-react";
 import Link from "next/link";
 import { FilaCliente, direccionPropiedad } from "@/components/app/filas";
 import { Cargando, Pantalla, SeccionTitulo, Vacio } from "@/components/app/pantalla";
@@ -26,6 +26,7 @@ export default function Hoy() {
 
   const lista = oportunidades.data ?? [];
   const nueva = lista.find((m) => m.status === "new");
+  const sinVer = lista.filter((m) => m.status === "new").length;
   const paraReactivar = (clientes.data ?? []).filter(
     (c) => c.status === "active" && c.last_contact_at && diasDesde(c.last_contact_at) > DIAS_PARA_REACTIVAR,
   );
@@ -42,9 +43,23 @@ export default function Hoy() {
     >
       <header className="flex items-center justify-between">
         <Logo ancho={96} />
-        <Link href="/perfil" aria-label="Tu perfil" className="rounded-full p-0.5">
-          <Avatar nombre={agente.data?.name ?? ""} />
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            href="/bandeja"
+            aria-label={sinVer ? `Bandeja: ${sinVer} ${sinVer === 1 ? "aviso sin ver" : "avisos sin ver"}` : "Bandeja de avisos"}
+            className="relative flex size-11 items-center justify-center rounded-full text-texto hover:bg-superficie-tinte"
+          >
+            <Bell size={24} strokeWidth={1.75} aria-hidden="true" />
+            {sinVer ? (
+              <span className="absolute top-1.5 right-1.5 flex min-w-[18px] items-center justify-center rounded-full bg-acento px-1 text-[11px] leading-[18px] font-semibold text-sobre-acento" aria-hidden="true">
+                {sinVer}
+              </span>
+            ) : null}
+          </Link>
+          <Link href="/perfil" aria-label="Tu perfil" className="rounded-full p-0.5">
+            <Avatar nombre={agente.data?.name ?? ""} />
+          </Link>
+        </div>
       </header>
 
       <div className="mt-5">

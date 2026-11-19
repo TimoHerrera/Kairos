@@ -3,49 +3,38 @@
 import { ArrowLeft, Building2, Check, Fence, Info, Layers, MessageCircle, Ruler, TriangleAlert, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useRef, type ReactNode } from "react";
+import { use, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnilloEncaje } from "@/components/app/anillo-encaje";
+import { HojaMensaje } from "@/components/app/hoja-mensaje";
+import { Toast } from "@/components/ui/toast";
 import { FotoPropiedad, direccionPropiedad } from "@/components/app/filas";
 import { Cargando, Pantalla, Vacio } from "@/components/app/pantalla";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import type { MatchWithRefs } from "@/lib/data";
-import { useMatch, useSetMatchStatus } from "@/lib/data/hooks";
+import { useBuyerCriteria, useMatch, useSetMatchStatus } from "@/lib/data/hooks";
 import { ambientesCorto, pisoTexto } from "@/lib/domain/labels";
 import { NOMBRE_PORTAL } from "@/lib/domain/propiedad";
 import { formatMonto, formatNumero } from "@/lib/format";
-import { linkWhatsApp } from "@/lib/format/telefono";
 import { haceCuanto } from "@/lib/format/tiempo";
 import { calificacion } from "@/lib/match/motor";
 import { cumpleDeLas } from "@/lib/match/recalcular";
 
 const primerNombre = (n: string) => n.split(" ")[0];
 
-/** Mensaje simple para WhatsApp. En la fase 6 lo reemplaza el mensaje redactado con IA, editable y con tonos. */
-function mensajeBasico(m: MatchWithRefs): string {
-  const p = m.property;
-  const piso = pisoTexto(p.floor);
-  const extras = [piso && p.floor !== 0 ? `un ${piso.toLowerCase()}` : null, p.balcony ? "con balcón" : null].filter(Boolean).join(" ");
-  return [
-    `Hola ${primerNombre(m.buyer.name)}, acaba de entrar algo que encaja con lo que buscás:`,
-    `${ambientesCorto(p.property_type, p.rooms)} en ${direccionPropiedad(p)}${extras ? `, ${extras}` : ""}, a ${formatMonto(p.price, p.currency)}.`,
-    p.url ? p.url : null,
-    "¿Te gustaría verlo esta semana?",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
-
 export function DetalleOportunidad({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
   const oportunidad = useMatch(id);
   const cambiarEstado = useSetMatchStatus();
+  const [escribiendo, setEscribiendo] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const cerrarToast = useCallback(() => setToast(null), []);
 
   // Abrirla la marca como vista, una sola vez.
   const marcada = useRef(false);
   const m = oportunidad.data;
+  const ficha = useBuyerCriteria(m?.buyer_id ?? "");
   useEffect(() => {
     if (m && m.status === "new" && !marcada.current) {
       marcada.current = true;
@@ -78,9 +67,7 @@ export function DetalleOportunidad({ params }: { params: Promise<{ id: string }>
   const enviada = m.status === "sent";
 
   function mandar() {
-    if (!m?.buyer.phone) return;
-    window.open(linkWhatsApp(m.buyer.phone, mensajeBasico(m)), "_blank", "noopener,noreferrer");
-    cambiarEstado.mutate({ id: m.id, status: "sent" });
+    setEscribiendo(true);
   }
 
   return (
@@ -187,6 +174,19 @@ export function DetalleOportunidad({ params }: { params: Promise<{ id: string }>
           {m.reasons.discard_note}
         </p>
       ) : null}
+
+      <HojaMensaje
+        abierta={escribiendo}
+        oportunidad={m}
+        dealBreakers={ficha.data?.deal_breakers ?? []}
+        onCerrar={() => setEscribiendo(false)}
+        onEnviado={() => {
+          setEscribiendo(false);
+          setToast(`Enviado a ${nombre}`);
+          void oportunidad.refetch();
+        }}
+      />
+      <Toast texto={toast} onCerrar={cerrarToast} />
     </Pantalla>
   );
 }

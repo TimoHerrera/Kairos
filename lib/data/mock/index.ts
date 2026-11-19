@@ -9,6 +9,7 @@ import {
   type NewNote,
   type NewProperty,
   type NewMatch,
+  type NewMessage,
   normalizarDireccion,
   type Session,
 } from "../source";
@@ -543,6 +544,64 @@ export function createMockDataSource(
           if (buyer && property) resultado.push({ ...m, buyer, property });
         }
         return resultado.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      },
+    },
+
+    messages: {
+      async create(datos: NewMessage) {
+        const { agentId, db, mine } = scoped();
+        if (!mine(db.matches).some((x) => x.id === datos.match_id)) throw new DataError("not_found", "No encontramos esa oportunidad.");
+        const texto = datos.text.trim();
+        if (!texto) throw new DataError("invalid", "El mensaje está vacío.");
+        const mensaje: Message = {
+          id: newId(),
+          agent_id: agentId,
+          match_id: datos.match_id,
+          text: texto,
+          tone: datos.tone,
+          sent_via: "whatsapp",
+          sent_at: now().toISOString(),
+        };
+        db.messages.push(mensaje);
+        save(db);
+        return mensaje;
+      },
+      async listByMatch(matchId) {
+        const { db, mine } = scoped();
+        return mine(db.messages)
+          .filter((x) => x.match_id === matchId)
+          .sort((a, b) => b.sent_at.localeCompare(a.sent_at));
+      },
+    },
+
+    push: {
+      async save(suscripcion) {
+        const { agentId, db, mine } = scoped();
+        const existente = mine(db.push_subscriptions).find((x) => x.endpoint === suscripcion.endpoint);
+        if (existente) {
+          existente.keys = suscripcion.keys;
+          save(db);
+          return existente;
+        }
+        const fila: PushSubscriptionRow = {
+          id: newId(),
+          agent_id: agentId,
+          endpoint: suscripcion.endpoint,
+          keys: suscripcion.keys,
+          created_at: now().toISOString(),
+        };
+        db.push_subscriptions.push(fila);
+        save(db);
+        return fila;
+      },
+      async list() {
+        const { db, mine } = scoped();
+        return mine(db.push_subscriptions);
+      },
+      async remove(endpoint) {
+        const { agentId, db } = scoped();
+        db.push_subscriptions = db.push_subscriptions.filter((x) => !(x.agent_id === agentId && x.endpoint === endpoint));
+        save(db);
       },
     },
 

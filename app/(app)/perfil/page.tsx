@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
 import { ThemeSwitch } from "@/components/ui/theme-switch";
+import { AjustesAvisos } from "@/components/app/ajustes-avisos";
 import { getDataSource } from "@/lib/data";
 import { useAgent } from "@/lib/data/hooks";
 
@@ -65,6 +66,9 @@ export default function Perfil() {
           <Dato etiqueta="Teléfono" valor={a?.phone ? `+${a.phone}` : null} />
         </dl>
       </Card>
+
+      <SeccionTitulo>Avisos</SeccionTitulo>
+      {a ? <AjustesAvisos settings={a.settings} /> : null}
 
       <SeccionTitulo>Tema</SeccionTitulo>
       <ThemeSwitch />
