@@ -25,7 +25,12 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip, ChipBoton, ChipEditable } from "@/components/ui/chip";
 import { Hoja } from "@/components/ui/hoja";
-import type { BuyerCriteria, DiscardWithProperty, MatchWithRefs, Note } from "@/lib/data";
+import type {
+  BuyerCriteria,
+  DiscardWithProperty,
+  MatchWithRefs,
+  Note,
+} from "@/lib/data";
 import {
   useAddDiscard,
   useBuyer,
@@ -38,7 +43,14 @@ import {
   useUpdateBuyer,
   useUpdateCriteria,
 } from "@/lib/data/hooks";
-import { ESTADO_CLIENTE, FINANCIACION, OPERACION, TIPO_PROPIEDAD, ambientesCorto, etiquetaCaracteristica } from "@/lib/domain/labels";
+import {
+  ESTADO_CLIENTE,
+  FINANCIACION,
+  OPERACION,
+  TIPO_PROPIEDAD,
+  ambientesCorto,
+  etiquetaCaracteristica,
+} from "@/lib/domain/labels";
 import { zonaPrincipal } from "@/lib/domain/resumen";
 import { formatMonto, formatPorcentaje } from "@/lib/format";
 import { formatTelefono, linkWhatsApp } from "@/lib/format/telefono";
@@ -75,15 +87,31 @@ const TITULOS: Record<Exclude<Editor, { agregarA: ListaChips }>, string> = {
   descarte: "Agregar algo que descartó",
 };
 
-const LISTAS: Record<ListaChips, { titulo: string; agregar: string; vacio: string }> = {
-  must_haves: { titulo: "Le importa", agregar: "Agregar algo que le importa", vacio: "Todavía no sabemos qué le importa." },
-  nice_to_haves: { titulo: "Le gustaría", agregar: "Agregar algo que le gustaría", vacio: "Nada extra por ahora." },
-  deal_breakers: { titulo: "No quiere", agregar: "Agregar algo que no quiere", vacio: "No dijo nada que no quiera." },
+const LISTAS: Record<
+  ListaChips,
+  { titulo: string; agregar: string; vacio: string }
+> = {
+  must_haves: {
+    titulo: "Le importa",
+    agregar: "Agregar algo que le importa",
+    vacio: "Todavía no sabemos qué le importa.",
+  },
+  nice_to_haves: {
+    titulo: "Le gustaría",
+    agregar: "Agregar algo que le gustaría",
+    vacio: "Nada extra por ahora.",
+  },
+  deal_breakers: {
+    titulo: "No quiere",
+    agregar: "Agregar algo que no quiere",
+    vacio: "No dijo nada que no quiera.",
+  },
 };
 
 const primerNombre = (nombre: string) => nombre.split(" ")[0];
 
-const duracion = (seg: number) => `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}`;
+const duracion = (seg: number) =>
+  `${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, "0")}`;
 
 export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -97,7 +125,7 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
   const actualizarFicha = useUpdateCriteria(cliente.data);
   const actualizarCliente = useUpdateBuyer(id);
   const agregarDescarte = useAddDiscard(id);
-  const quitarDescarte = useRemoveDiscard();
+  const quitarDescarte = useRemoveDiscard(id);
 
   const [editor, setEditor] = useState<Editor | null>(null);
   const [editandoLista, setEditandoLista] = useState<ListaChips | null>(null);
@@ -118,22 +146,32 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
       <Pantalla>
         <Volver />
         <div className="mt-8">
-          <Vacio titulo="No encontramos este cliente">Puede que se haya borrado o que sea de otra cuenta.</Vacio>
+          <Vacio titulo="No encontramos este cliente">
+            Puede que se haya borrado o que sea de otra cuenta.
+          </Vacio>
         </div>
       </Pantalla>
     );
   }
 
   const nombre = primerNombre(c.name);
-  const guardarFicha = (cambios: Partial<Omit<BuyerCriteria, "buyer_id" | "agent_id">>) =>
-    actualizarFicha.mutateAsync(cambios);
+  const guardarFicha = (
+    cambios: Partial<Omit<BuyerCriteria, "buyer_id" | "agent_id">>,
+  ) => actualizarFicha.mutateAsync(cambios);
 
   function quitarDeLista(lista: ListaChips, clave: string) {
-    void actualizarFicha.mutateAsync({ [lista]: f![lista].filter((x) => x !== clave) });
+    void actualizarFicha.mutateAsync({
+      [lista]: f![lista].filter((x) => x !== clave),
+    });
   }
 
   const ultimaNota = notas.data?.[0];
-  const tituloHoja = typeof editor === "object" && editor ? LISTAS[editor.agregarA].agregar : editor ? TITULOS[editor] : "";
+  const tituloHoja =
+    typeof editor === "object" && editor
+      ? LISTAS[editor.agregarA].agregar
+      : editor
+        ? TITULOS[editor]
+        : "";
 
   return (
     <Pantalla
@@ -157,7 +195,9 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
         <Volver />
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <Avatar nombre={c.name} tamano="sm" />
-          <h1 className="truncate text-[17px] leading-[22px] font-semibold text-tinta">{c.name}</h1>
+          <h1 className="truncate text-[17px] leading-[22px] font-semibold text-tinta">
+            {c.name}
+          </h1>
         </div>
         {c.phone ? (
           <a
@@ -176,19 +216,26 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-wrap gap-2">
           {ultimaNota ? (
             <Chip icono={<Mic size={14} strokeWidth={2} aria-hidden="true" />}>
-              {ultimaNota.kind === "audio" ? "Desde tu audio" : "Desde tu nota"} · {haceCuanto(ultimaNota.created_at)}
+              {ultimaNota.kind === "audio" ? "Desde tu audio" : "Desde tu nota"}{" "}
+              · {haceCuanto(ultimaNota.created_at)}
             </Chip>
           ) : null}
-          {c.status !== "active" ? <Chip variante="descarte">{ESTADO_CLIENTE[c.status]}</Chip> : null}
+          {c.status !== "active" ? (
+            <Chip variante="descarte">{ESTADO_CLIENTE[c.status]}</Chip>
+          ) : null}
         </div>
 
         <Resumen texto={c.summary} zona={zonaPrincipal(f)} />
 
         {/* Qué busca */}
         <Card>
-          <h2 className="mb-1 text-[17px] leading-[22px] font-semibold text-tinta">Qué busca</h2>
+          <h2 className="mb-1 text-[17px] leading-[22px] font-semibold text-tinta">
+            Qué busca
+          </h2>
           <Fila
-            icono={<Building2 size={18} strokeWidth={1.75} aria-hidden="true" />}
+            icono={
+              <Building2 size={18} strokeWidth={1.75} aria-hidden="true" />
+            }
             etiqueta="Tipo"
             onEditar={() => setEditor("tipo")}
           >
@@ -242,7 +289,9 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
             {FINANCIACION[f.financing]}
           </Fila>
           <Fila
-            icono={<CalendarDays size={18} strokeWidth={1.75} aria-hidden="true" />}
+            icono={
+              <CalendarDays size={18} strokeWidth={1.75} aria-hidden="true" />
+            }
             etiqueta="Mudanza"
             onEditar={() => setEditor("mudanza")}
           >
@@ -257,7 +306,9 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
             lista={lista}
             claves={f[lista]}
             editando={editandoLista === lista}
-            onEditar={() => setEditandoLista(editandoLista === lista ? null : lista)}
+            onEditar={() =>
+              setEditandoLista(editandoLista === lista ? null : lista)
+            }
             onQuitar={(clave) => quitarDeLista(lista, clave)}
             onAgregar={() => setEditor({ agregarA: lista })}
           />
@@ -266,7 +317,9 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
         {/* Ya descartó */}
         <Card>
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">Ya descartó</h2>
+            <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+              Ya descartó
+            </h2>
             <Button
               variante="terciario"
               tamano="sm"
@@ -280,17 +333,25 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
           {descartes.data?.length ? (
             <ul className="divide-y divide-linea">
               {descartes.data.map((d) => (
-                <FilaDescarte key={d.id} descarte={d} onQuitar={() => quitarDescarte.mutate(d.id)} />
+                <FilaDescarte
+                  key={d.id}
+                  descarte={d}
+                  onQuitar={() => quitarDescarte.mutate(d.id)}
+                />
               ))}
             </ul>
           ) : (
-            <p className="mt-1 text-cuerpo-s text-texto-suave">Todavía no descartó nada.</p>
+            <p className="mt-1 text-cuerpo-s text-texto-suave">
+              Todavía no descartó nada.
+            </p>
           )}
         </Card>
 
         {/* Oportunidades */}
         <Card>
-          <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">Oportunidades</h2>
+          <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+            Oportunidades
+          </h2>
           {oportunidades.data?.length ? (
             <ul className="divide-y divide-linea">
               {oportunidades.data.map((m) => (
@@ -299,14 +360,17 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
             </ul>
           ) : (
             <p className="mt-1 text-cuerpo-s text-texto-suave">
-              Todavía ninguna. Cuando entre una propiedad que le sirva, te avisamos.
+              Todavía ninguna. Cuando entre una propiedad que le sirva, te
+              avisamos.
             </p>
           )}
         </Card>
 
         {/* Historial */}
         <Card>
-          <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">Historial de notas</h2>
+          <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+            Historial de notas
+          </h2>
           {notas.data?.length ? (
             <ul className="divide-y divide-linea">
               {notas.data.map((n) => (
@@ -314,20 +378,29 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
               ))}
             </ul>
           ) : (
-            <p className="mt-1 text-cuerpo-s text-texto-suave">Grabá una nota para empezar su historial.</p>
+            <p className="mt-1 text-cuerpo-s text-texto-suave">
+              Grabá una nota para empezar su historial.
+            </p>
           )}
         </Card>
 
         {/* Contacto */}
         <Card>
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">Contacto</h2>
-            <BotonLapiz etiqueta="Editar datos de contacto" onClick={() => setEditor("contacto")} />
+            <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+              Contacto
+            </h2>
+            <BotonLapiz
+              etiqueta="Editar datos de contacto"
+              onClick={() => setEditor("contacto")}
+            />
           </div>
           <dl className="mt-1 space-y-2 text-cuerpo-s">
             <div>
               <dt className="text-pie text-texto-suave">WhatsApp</dt>
-              <dd className="text-tinta">{c.phone ? formatTelefono(c.phone) : <SinDato />}</dd>
+              <dd className="text-tinta">
+                {c.phone ? formatTelefono(c.phone) : <SinDato />}
+              </dd>
             </div>
             <div>
               <dt className="text-pie text-texto-suave">Email</dt>
@@ -335,25 +408,53 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
             </div>
             <div>
               <dt className="text-pie text-texto-suave">Último contacto</dt>
-              <dd className="text-tinta">{c.last_contact_at ? haceCuanto(c.last_contact_at) : "Sin contacto todavía"}</dd>
+              <dd className="text-tinta">
+                {c.last_contact_at
+                  ? haceCuanto(c.last_contact_at)
+                  : "Sin contacto todavía"}
+              </dd>
             </div>
           </dl>
         </Card>
       </div>
 
       <Hoja abierta={editor !== null} onCerrar={cerrar} titulo={tituloHoja}>
-        {editor === "tipo" ? <EditarTipo ficha={f} guardar={guardarFicha} onCerrar={cerrar} /> : null}
-        {editor === "zona" ? <EditarZona ficha={f} guardar={guardarFicha} onCerrar={cerrar} /> : null}
-        {editor === "presupuesto" ? <EditarPresupuesto ficha={f} guardar={guardarFicha} onCerrar={cerrar} /> : null}
-        {editor === "financiacion" ? <EditarFinanciacion ficha={f} guardar={guardarFicha} onCerrar={cerrar} /> : null}
-        {editor === "mudanza" ? <EditarMudanza ficha={f} guardar={guardarFicha} onCerrar={cerrar} /> : null}
+        {editor === "tipo" ? (
+          <EditarTipo ficha={f} guardar={guardarFicha} onCerrar={cerrar} />
+        ) : null}
+        {editor === "zona" ? (
+          <EditarZona ficha={f} guardar={guardarFicha} onCerrar={cerrar} />
+        ) : null}
+        {editor === "presupuesto" ? (
+          <EditarPresupuesto
+            ficha={f}
+            guardar={guardarFicha}
+            onCerrar={cerrar}
+          />
+        ) : null}
+        {editor === "financiacion" ? (
+          <EditarFinanciacion
+            ficha={f}
+            guardar={guardarFicha}
+            onCerrar={cerrar}
+          />
+        ) : null}
+        {editor === "mudanza" ? (
+          <EditarMudanza ficha={f} guardar={guardarFicha} onCerrar={cerrar} />
+        ) : null}
         {editor === "contacto" ? (
-          <EditarContacto cliente={c} guardar={(cambios) => actualizarCliente.mutateAsync(cambios)} onCerrar={cerrar} />
+          <EditarContacto
+            cliente={c}
+            guardar={(cambios) => actualizarCliente.mutateAsync(cambios)}
+            onCerrar={cerrar}
+          />
         ) : null}
         {editor === "descarte" ? (
           <AgregarDescarte
             propiedades={propiedades.data ?? []}
-            yaDescartadas={(descartes.data ?? []).map((d) => d.property_id).filter((x): x is string => Boolean(x))}
+            yaDescartadas={(descartes.data ?? [])
+              .map((d) => d.property_id)
+              .filter((x): x is string => Boolean(x))}
             onAgregar={(datos) => agregarDescarte.mutateAsync(datos)}
             onCerrar={cerrar}
           />
@@ -361,7 +462,11 @@ export function FichaCliente({ params }: { params: Promise<{ id: string }> }) {
         {typeof editor === "object" && editor ? (
           <AgregarCaracteristica
             actuales={[...f.must_haves, ...f.nice_to_haves, ...f.deal_breakers]}
-            onAgregar={(clave) => guardarFicha({ [editor.agregarA]: [...f[editor.agregarA], clave] })}
+            onAgregar={(clave) =>
+              guardarFicha({
+                [editor.agregarA]: [...f[editor.agregarA], clave],
+              })
+            }
             onCerrar={cerrar}
           />
         ) : null}
@@ -396,7 +501,13 @@ function ambientesTexto(f: BuyerCriteria): string | null {
 }
 
 /** La frase resumen en Fraunces, con la zona como única palabra en acento. */
-function Resumen({ texto, zona }: { texto: string | null; zona: string | null }) {
+function Resumen({
+  texto,
+  zona,
+}: {
+  texto: string | null;
+  zona: string | null;
+}) {
   if (!texto) {
     return (
       <p className="text-titulo-s text-tinta">
@@ -420,7 +531,13 @@ function Resumen({ texto, zona }: { texto: string | null; zona: string | null })
   );
 }
 
-function BotonLapiz({ etiqueta, onClick }: { etiqueta: string; onClick: () => void }) {
+function BotonLapiz({
+  etiqueta,
+  onClick,
+}: {
+  etiqueta: string;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
@@ -452,11 +569,18 @@ function Fila({
         {icono}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] leading-[18px] font-medium text-texto-suave">{etiqueta}</p>
-        <div className="text-[15px] leading-[21px] font-medium text-tinta">{children}</div>
+        <p className="text-[13px] leading-[18px] font-medium text-texto-suave">
+          {etiqueta}
+        </p>
+        <div className="text-[15px] leading-[21px] font-medium text-tinta">
+          {children}
+        </div>
         {abajo}
       </div>
-      <BotonLapiz etiqueta={`Editar ${etiqueta.toLowerCase()}`} onClick={onEditar} />
+      <BotonLapiz
+        etiqueta={`Editar ${etiqueta.toLowerCase()}`}
+        onClick={onEditar}
+      />
     </div>
   );
 }
@@ -478,32 +602,54 @@ function TarjetaChips({
 }) {
   const { titulo, vacio } = LISTAS[lista];
   const negativo = lista === "deal_breakers";
-  const variante = lista === "must_haves" ? "exito" : negativo ? "error" : "busca";
+  const variante =
+    lista === "must_haves" ? "exito" : negativo ? "error" : "busca";
   const Icono = negativo ? X : Check;
 
   return (
     <Card>
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">{titulo}</h2>
-        <Button variante="terciario" tamano="sm" className="-mr-3" onClick={onEditar} aria-label={`${editando ? "Terminar de editar" : "Editar"} ${titulo.toLowerCase()}`}>
+        <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+          {titulo}
+        </h2>
+        <Button
+          variante="terciario"
+          tamano="sm"
+          className="-mr-3"
+          onClick={onEditar}
+          aria-label={`${editando ? "Terminar de editar" : "Editar"} ${titulo.toLowerCase()}`}
+        >
           {editando ? "Listo" : "Editar"}
         </Button>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {claves.length === 0 && !editando ? <p className="text-cuerpo-s text-texto-suave">{vacio}</p> : null}
+        {claves.length === 0 && !editando ? (
+          <p className="text-cuerpo-s text-texto-suave">{vacio}</p>
+        ) : null}
         {claves.map((clave) =>
           editando ? (
-            <ChipEditable key={clave} variante={variante} onQuitar={() => onQuitar(clave)}>
+            <ChipEditable
+              key={clave}
+              variante={variante}
+              onQuitar={() => onQuitar(clave)}
+            >
               {etiquetaCaracteristica(clave)}
             </ChipEditable>
           ) : (
-            <Chip key={clave} variante={variante} icono={<Icono size={14} strokeWidth={2.25} aria-hidden="true" />}>
+            <Chip
+              key={clave}
+              variante={variante}
+              icono={<Icono size={14} strokeWidth={2.25} aria-hidden="true" />}
+            >
               {etiquetaCaracteristica(clave)}
             </Chip>
           ),
         )}
         {editando ? (
-          <ChipBoton icono={<Plus size={16} strokeWidth={2} aria-hidden="true" />} onClick={onAgregar}>
+          <ChipBoton
+            icono={<Plus size={16} strokeWidth={2} aria-hidden="true" />}
+            onClick={onAgregar}
+          >
             Agregar
           </ChipBoton>
         ) : null}
@@ -512,7 +658,13 @@ function TarjetaChips({
   );
 }
 
-function FilaDescarte({ descarte, onQuitar }: { descarte: DiscardWithProperty; onQuitar: () => void }) {
+function FilaDescarte({
+  descarte,
+  onQuitar,
+}: {
+  descarte: DiscardWithProperty;
+  onQuitar: () => void;
+}) {
   const p = descarte.property;
   const titulo = p
     ? `${p.address} · ${p.floor === 0 ? "PB" : ambientesCorto(p.property_type, p.rooms)}`
@@ -520,15 +672,23 @@ function FilaDescarte({ descarte, onQuitar }: { descarte: DiscardWithProperty; o
   return (
     <li className="flex items-center gap-3 py-3 last:pb-0">
       {p ? (
-        <FotoPropiedad propiedad={p} className="size-14 rounded-md" sizes="56px" />
+        <FotoPropiedad
+          propiedad={p}
+          className="size-14 rounded-md"
+          sizes="56px"
+        />
       ) : (
         <span className="flex size-14 shrink-0 items-center justify-center rounded-md bg-superficie-tinte text-texto-suave">
           <Building2 size={20} strokeWidth={1.75} aria-hidden="true" />
         </span>
       )}
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] leading-[21px] font-semibold text-tinta">{titulo}</p>
-        <p className="mt-0.5 text-[13px] leading-[18px] text-texto-suave">“{descarte.reason}”</p>
+        <p className="text-[15px] leading-[21px] font-semibold text-tinta">
+          {titulo}
+        </p>
+        <p className="mt-0.5 text-[13px] leading-[18px] text-texto-suave">
+          “{descarte.reason}”
+        </p>
       </div>
       <button
         type="button"
@@ -544,22 +704,40 @@ function FilaDescarte({ descarte, onQuitar }: { descarte: DiscardWithProperty; o
 
 function FilaOportunidad({ oportunidad: m }: { oportunidad: MatchWithRefs }) {
   return (
-    <li className="flex items-center gap-3 py-3 last:pb-0">
-      <FotoPropiedad propiedad={m.property} className="size-14 rounded-md" sizes="56px" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[15px] leading-[21px] font-semibold text-tinta">{direccionPropiedad(m.property)}</p>
-        <p className="text-[13px] leading-[18px] text-texto">{formatMonto(m.property.price, m.property.currency)}</p>
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
-          <Chip>{formatPorcentaje(m.score)} encaje</Chip>
-          {m.status === "sent" ? (
-            <Chip variante="exito" icono={<Check size={14} strokeWidth={2.25} aria-hidden="true" />}>
-              Enviado
-            </Chip>
-          ) : m.status === "new" ? (
-            <Chip variante="oportunidad">Nueva</Chip>
-          ) : null}
+    <li>
+      <Link
+        href={`/oportunidad/${m.id}`}
+        className="-mx-2 flex items-center gap-3 rounded-md px-2 py-3 hover:bg-superficie-tinte"
+      >
+        <FotoPropiedad
+          propiedad={m.property}
+          className="size-14 rounded-md"
+          sizes="56px"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[15px] leading-[21px] font-semibold text-tinta">
+            {direccionPropiedad(m.property)}
+          </p>
+          <p className="text-[13px] leading-[18px] text-texto">
+            {formatMonto(m.property.price, m.property.currency)}
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <Chip>{formatPorcentaje(m.score)} encaje</Chip>
+            {m.status === "sent" ? (
+              <Chip
+                variante="exito"
+                icono={
+                  <Check size={14} strokeWidth={2.25} aria-hidden="true" />
+                }
+              >
+                Enviado
+              </Chip>
+            ) : m.status === "new" ? (
+              <Chip variante="oportunidad">Nueva</Chip>
+            ) : null}
+          </div>
         </div>
-      </div>
+      </Link>
     </li>
   );
 }
@@ -574,23 +752,42 @@ function FilaNota({ nota }: { nota: Note }) {
           <FileText size={14} strokeWidth={2} aria-hidden="true" />
         )}
         {nota.kind === "audio" ? "Audio" : "Nota escrita"}
-        {nota.duration_seconds ? ` · ${duracion(nota.duration_seconds)}` : ""} · {haceCuanto(nota.created_at)}
+        {nota.duration_seconds
+          ? ` · ${duracion(nota.duration_seconds)}`
+          : ""} · {haceCuanto(nota.created_at)}
       </p>
       {nota.audio_path ? (
-        <audio controls preload="none" src={nota.audio_path} className="mt-2 w-full">
+        <audio
+          controls
+          preload="none"
+          src={nota.audio_path}
+          className="mt-2 w-full"
+        >
           Tu navegador no puede reproducir este audio.
         </audio>
       ) : nota.kind === "audio" ? (
-        <p className="mt-1 text-pie text-texto-suave">El audio se borró después de transcribirlo.</p>
+        <p className="mt-1 text-pie text-texto-suave">
+          El audio se borró después de transcribirlo.
+        </p>
       ) : null}
       {nota.transcript ? (
-        <blockquote className="mt-2 rounded-md bg-chip px-3 py-2 text-cuerpo-s text-tinta">{nota.transcript}</blockquote>
+        <blockquote className="mt-2 rounded-md bg-chip px-3 py-2 text-cuerpo-s text-tinta">
+          {nota.transcript}
+        </blockquote>
       ) : null}
       {nota.changes.length ? (
         <ul className="mt-2 space-y-1">
           {nota.changes.map((cambio) => (
-            <li key={cambio} className="flex items-start gap-1.5 text-cuerpo-s text-texto">
-              <Check size={16} strokeWidth={2} aria-hidden="true" className="mt-0.5 shrink-0 text-exito" />
+            <li
+              key={cambio}
+              className="flex items-start gap-1.5 text-cuerpo-s text-texto"
+            >
+              <Check
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+                className="mt-0.5 shrink-0 text-exito"
+              />
               {cambio}
             </li>
           ))}

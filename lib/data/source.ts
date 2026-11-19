@@ -1,5 +1,6 @@
 import type {
   Agent,
+  Match,
   AgentSettings,
   Buyer,
   BuyerCriteria,
@@ -50,6 +51,11 @@ export interface DataSource {
   };
   matches: {
     list(filtro?: { status?: MatchStatus[]; buyerId?: Id; propertyId?: Id }): Promise<MatchWithRefs[]>;
+    get(id: Id): Promise<MatchWithRefs | null>;
+    /** Crea la oportunidad (estado "nuevo") o actualiza su puntaje y explicación sin tocar el estado. */
+    upsert(datos: NewMatch): Promise<{ match: Match; creada: boolean }>;
+    setStatus(id: Id, status: MatchStatus): Promise<Match>;
+    remove(id: Id): Promise<void>;
   };
   demo: {
     /** Borra los datos del agente actual y vuelve a cargar los del prototipo. */
@@ -70,6 +76,8 @@ export type NewNote = Pick<Note, "kind" | "transcript"> &
 export type NewProperty = Omit<Property, "id" | "agent_id" | "created_at" | "published_at"> & {
   published_at?: string;
 };
+
+export type NewMatch = Pick<Match, "buyer_id" | "property_id" | "score" | "reasons" | "similar_to_discard">;
 
 export type NewDiscard = {
   property_id?: Id | null;

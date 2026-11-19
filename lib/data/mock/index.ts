@@ -8,6 +8,7 @@ import {
   type NewDiscard,
   type NewNote,
   type NewProperty,
+  type NewMatch,
   normalizarDireccion,
   type Session,
 } from "../source";
@@ -20,6 +21,7 @@ import {
   type Note,
   type Property,
   type Id,
+  type Match,
   type MatchWithRefs,
   type Message,
   type PushSubscriptionRow,
@@ -480,6 +482,53 @@ export function createMockDataSource(
     },
 
     matches: {
+      async get(id) {
+        const { db, mine } = scoped();
+        const m = mine(db.matches).find((x) => x.id === id);
+        if (!m) return null;
+        const buyer = mine(db.buyers).find((b) => b.id === m.buyer_id);
+        const property = mine(db.properties).find((p) => p.id === m.property_id);
+        return buyer && property ? { ...m, buyer, property } : null;
+      },
+      async upsert(datos: NewMatch) {
+        const { agentId, db, mine } = scoped();
+        if (!mine(db.buyers).some((b) => b.id === datos.buyer_id)) throw new DataError("not_found", "No encontramos ese cliente.");
+        if (!mine(db.properties).some((p) => p.id === datos.property_id)) throw new DataError("not_found", "No encontramos esa propiedad.");
+        const existente = mine(db.matches).find((x) => x.buyer_id === datos.buyer_id && x.property_id === datos.property_id);
+        if (existente) {
+          Object.assign(existente, { score: datos.score, reasons: datos.reasons, similar_to_discard: datos.similar_to_discard });
+          save(db);
+          return { match: existente, creada: false };
+        }
+        const ahora = now().toISOString();
+        const nueva: Match = {
+          ...datos,
+          id: newId(),
+          agent_id: agentId,
+          status: "new",
+          notified_at: ahora,
+          sent_at: null,
+          created_at: ahora,
+        };
+        db.matches.push(nueva);
+        save(db);
+        return { match: nueva, creada: true };
+      },
+      async setStatus(id, status) {
+        const { db, mine } = scoped();
+        const m = mine(db.matches).find((x) => x.id === id);
+        if (!m) throw new DataError("not_found", "No encontramos esa oportunidad.");
+        m.status = status;
+        if (status === "sent") m.sent_at = now().toISOString();
+        save(db);
+        return m;
+      },
+      async remove(id) {
+        const { db, mine } = scoped();
+        if (!mine(db.matches).some((x) => x.id === id)) throw new DataError("not_found", "No encontramos esa oportunidad.");
+        db.matches = db.matches.filter((x) => x.id !== id);
+        save(db);
+      },
       async list(filtro) {
         const { db, mine } = scoped();
         const clientes = mine(db.buyers);

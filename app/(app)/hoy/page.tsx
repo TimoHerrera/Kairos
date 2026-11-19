@@ -8,10 +8,10 @@ import { Logo } from "@/components/brand/logo";
 import { Avatar } from "@/components/ui/avatar";
 import { AvisoOportunidad } from "@/components/ui/aviso-oportunidad";
 import { Acento, Eyebrow, Titulo } from "@/components/ui/bloque";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Chip } from "@/components/ui/chip";
-import { useAgent, useBuyers, useMatches } from "@/lib/data/hooks";
+import { useAgent, useBuyers, useMatches, useSetMatchStatus } from "@/lib/data/hooks";
 import { ambientesCorto } from "@/lib/domain/labels";
 import { formatMonto, formatPorcentaje } from "@/lib/format";
 import { DIAS_PARA_REACTIVAR, diasDesde, fechaLarga, haceCuanto, saludo } from "@/lib/format/tiempo";
@@ -22,6 +22,7 @@ export default function Hoy() {
   const agente = useAgent();
   const oportunidades = useMatches(["new", "seen", "sent"]);
   const clientes = useBuyers();
+  const cambiarEstado = useSetMatchStatus();
 
   const lista = oportunidades.data ?? [];
   const nueva = lista.find((m) => m.status === "new");
@@ -90,6 +91,16 @@ export default function Hoy() {
                 nueva.score,
               )} de encaje`}
               etiqueta={<Chip variante="oportunidad">Nueva oportunidad</Chip>}
+              acciones={
+                <>
+                  <ButtonLink href={`/oportunidad/${nueva.id}`} tamano="sm">
+                    Avisar a {primerNombre(nueva.buyer.name)}
+                  </ButtonLink>
+                  <Button tamano="sm" variante="terciario" onClick={() => cambiarEstado.mutate({ id: nueva.id, status: "dismissed" })}>
+                    Ahora no
+                  </Button>
+                </>
+              }
             />
           ) : null}
 
@@ -101,7 +112,7 @@ export default function Hoy() {
               {lista.map((m) => (
                 <li key={m.id}>
                   <Link
-                    href={`/clientes/${m.buyer.id}`}
+                    href={`/oportunidad/${m.id}`}
                     className="block rounded-lg border border-linea bg-superficie p-4 hover:bg-superficie-tinte"
                   >
                     <FilaCliente

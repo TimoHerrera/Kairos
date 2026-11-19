@@ -16,6 +16,7 @@ import { DataError, getDataSource } from "@/lib/data";
 import { useSession } from "@/lib/session/provider";
 import { useQueryClient } from "@tanstack/react-query";
 import { filasAPropiedades, parsearCsv, type FilaImportada } from "@/lib/domain/csv";
+import { recalcularOportunidades } from "@/lib/match/recalcular";
 import { BORRADOR_VACIO, avisoABorrador, type Borrador } from "@/lib/domain/propiedad";
 
 type Modo = "manual" | "pegar" | "importar";
@@ -172,7 +173,7 @@ function Importar() {
   const [filas, setFilas] = useState<FilaImportada[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [importando, setImportando] = useState(false);
-  const [resultado, setResultado] = useState<{ creadas: number; repetidas: string[]; fallidas: string[] } | null>(null);
+  const [resultado, setResultado] = useState<{ creadas: number; repetidas: string[]; fallidas: string[]; oportunidades: number } | null>(null);
 
   async function elegir(f: File | undefined) {
     setError(null);
@@ -204,17 +205,19 @@ function Importar() {
     if (!filas) return;
     setImportando(true);
     const ds = getDataSource();
-    const r = { creadas: 0, repetidas: [] as string[], fallidas: [] as string[] };
+    const r = { creadas: 0, repetidas: [] as string[], fallidas: [] as string[], oportunidades: 0 };
+    const ids: string[] = [];
     for (const f of filas) {
       if (!f.ok) continue;
       try {
-        await ds.properties.create(f.propiedad);
+        ids.push((await ds.properties.create(f.propiedad)).id);
         r.creadas += 1;
       } catch (e) {
         if (e instanceof DataError && e.code === "duplicate") r.repetidas.push(f.propiedad.address);
         else r.fallidas.push(`Fila ${f.numero}`);
       }
     }
+    if (ids.length) r.oportunidades = (await recalcularOportunidades(ds, { propiedadIds: ids })).nuevas.length;
     await queryClient.invalidateQueries({ queryKey: [sesion?.agentId] });
     setResultado(r);
     setFilas(null);
@@ -243,6 +246,11 @@ function Importar() {
           </Bajada>
         ) : null}
         {resultado.fallidas.length ? <Bajada className="mt-2">No pude cargar: {resultado.fallidas.join(", ")}.</Bajada> : null}
+        {resultado.oportunidades ? (
+          <Bajada className="mt-2">
+            {resultado.oportunidades === 1 ? "Encontré 1 oportunidad nueva" : `Encontré ${resultado.oportunidades} oportunidades nuevas`} para tus clientes. Las ves en Hoy.
+          </Bajada>
+        ) : null}
         <ButtonLink href="/propiedades" ancho="completo" className="mt-6">
           Ver propiedades
         </ButtonLink>

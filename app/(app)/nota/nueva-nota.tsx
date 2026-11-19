@@ -143,7 +143,7 @@ export function NuevaNota({ modo: configurado }: { modo: ModoConfigurado }) {
   }
 
   if (paso.tipo === "listo") {
-    const { cliente: c, nuevo, frases } = paso.resultado;
+    const { cliente: c, nuevo, frases, oportunidades } = paso.resultado;
     return (
       <Pantalla
         accion={
@@ -179,6 +179,25 @@ export function NuevaNota({ modo: configurado }: { modo: ModoConfigurado }) {
             <p className="mt-1 text-cuerpo-s text-texto">La nota quedó en su historial. La ficha ya tenía todo lo que contaste.</p>
           )}
         </Card>
+        {oportunidades.length ? (
+          <Card className="mt-3">
+            <h2 className="text-[17px] leading-[22px] font-semibold text-tinta">
+              {oportunidades.length === 1 ? "Ya hay una propiedad que le sirve" : `Ya hay ${oportunidades.length} propiedades que le sirven`}
+            </h2>
+            <ul className="mt-1">
+              {oportunidades.map((m) => (
+                <li key={m.id}>
+                  <Link
+                    href={`/oportunidad/${m.id}`}
+                    className="flex min-h-11 items-center text-cuerpo-s font-semibold text-acento underline underline-offset-2"
+                  >
+                    {m.property.address} · {m.score}% de encaje
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
       </Pantalla>
     );
   }

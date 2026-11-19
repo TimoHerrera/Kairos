@@ -1,9 +1,10 @@
 import { buscarPropiedad, combinarNota } from "@/lib/ai/extract/combinar";
 import type { NotaExtraida, PedidoExtraccion, RespuestaExtraccion } from "@/lib/ai/extract/schema";
-import { getDataSource, type Buyer, type BuyerCriteria } from "@/lib/data";
+import { getDataSource, type Buyer, type BuyerCriteria, type MatchWithRefs } from "@/lib/data";
 import { FINANCIACION, OPERACION, TIPO_PROPIEDAD, etiquetaCaracteristica } from "@/lib/domain/labels";
 import { resumenDeFicha, zonaPrincipal } from "@/lib/domain/resumen";
 import { formatMonto } from "@/lib/format";
+import { recalcularOportunidades } from "@/lib/match/recalcular";
 import { normalizarTelefono } from "@/lib/format/telefono";
 
 const plano = (t: string) =>
@@ -59,7 +60,7 @@ export function clientesConEseNombre(nombre: string, clientes: Buyer[]): Buyer[]
 
 export type Destino = { tipo: "existente"; buyerId: string } | { tipo: "nuevo"; nombre: string; telefono: string | null };
 
-export type NotaGuardada = { cliente: Buyer; nuevo: boolean; frases: string[] };
+export type NotaGuardada = { cliente: Buyer; nuevo: boolean; frases: string[]; oportunidades: MatchWithRefs[] };
 
 /**
  * Guarda la nota y actualiza la ficha sin pisarla. Con `nota` en null (la IA no pudo),
@@ -140,5 +141,8 @@ export async function guardarNota({
     last_contact_at: new Date().toISOString(),
   });
 
-  return { cliente, nuevo, frases };
+  // Con la ficha al día, se cruza con las propiedades cargadas.
+  const { nuevas } = await recalcularOportunidades(ds, { clienteIds: [cliente.id] });
+
+  return { cliente, nuevo, frases, oportunidades: nuevas };
 }
