@@ -43,7 +43,7 @@ begin
       credit_eligible, amenities, photos, description, published_at, created_at)
     values (p_agent, 'demo', 'zonaprop', 'buy', 'apartment', 'Gorriti 4800', 'Palermo', 'Soho',
       172000, 'USD', 185000, 3, 2, 72, 78, 4, 'Norte', true, false,
-      'unconfirmed', array['luminoso', 'ascensor']::text[], array['/props/living-1.svg']::text[], '3 ambientes con balcón al frente sobre calle tranquila. Orientación norte, muy luminoso.', v_ahora - interval '4 minutes', v_ahora - interval '4 minutes')
+      'unconfirmed', array['luminoso', 'silencioso', 'ascensor']::text[], array['/props/living-1.svg']::text[], '3 ambientes con balcón al frente sobre calle tranquila. Orientación norte, muy luminoso.', v_ahora - interval '4 minutes', v_ahora - interval '4 minutes')
     returning id
   ) insert into _prop select 'gorriti_4800', id from nueva;
   with nueva as (

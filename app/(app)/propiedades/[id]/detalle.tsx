@@ -82,7 +82,7 @@ export function DetallePropiedad({ params }: { params: Promise<{ id: string }> }
           <ul className="divide-y divide-linea">
             {oportunidades.data.map((m) => (
               <li key={m.id}>
-                <Link href={`/clientes/${m.buyer.id}`} className="-mx-2 flex min-h-14 items-center gap-3 rounded-md px-2 py-2.5 hover:bg-superficie-tinte">
+                <Link href={`/oportunidad/${m.id}`} className="-mx-2 flex min-h-14 items-center gap-3 rounded-md px-2 py-2.5 hover:bg-superficie-tinte">
                   <Avatar nombre={m.buyer.name} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] leading-5 font-semibold text-tinta">{m.buyer.name}</span>

@@ -15,7 +15,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | F2 | Clientes y ficha editable | Hecha |
 | F3 | Nueva nota: grabación, transcripción, extracción a ficha | Hecha (IA en modo mock) |
 | F4 | Propiedades: alta manual, pegar aviso, importar | Hecha (lectura de avisos en modo mock) |
-| F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Pendiente |
+| F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Hecha |
 | F6 | Mensaje de WhatsApp, Web Push, bandeja | Pendiente |
 | F7 | Supabase e IA reales, privacidad, modo demo, E2E, deploy | Pendiente |
 
@@ -78,6 +78,19 @@ Sin scraping: los términos de los portales suelen prohibirlo y se rompe seguido
 - **Importar CSV:** con la [plantilla](public/plantillas/propiedades.csv), separada por punto y coma como la guarda Excel en castellano. Desde Excel: Archivo → Guardar como → CSV. Los errores se muestran por número de fila. Excel (.xlsx) directo no se lee todavía.
 
 Una dirección ya cargada no se repite, aunque esté escrita distinto ("Gorriti al 4800" es "Gorriti 4800"). Las integraciones con portales o feeds oficiales quedan para más adelante, detrás de [lib/sources](lib/sources/index.ts).
+
+## Oportunidades
+
+El motor de coincidencias está en [lib/match](lib/match/motor.ts): funciones puras con tests.
+
+1. **Filtros duros** que excluyen: operación o tipo distintos, precio arriba del tope más la tolerancia, otro barrio (salvo limítrofes, con penalización), ambientes fuera de rango, cualquier cosa que no quiere (planta baja, avenida…) y lo que ya descartó.
+2. **Puntaje 0–100** ponderado: zona 25, precio 20 (más cuanto más debajo del tope), ambientes 15, lo que le importa 20, financiación 10 (apto crédito si usa crédito), lo que le gustaría 5. Se normaliza sobre lo que el cliente pidió: lo que no pidió no resta. Lo que falta confirmar vale 0,6.
+3. **Explicación** en texto natural ("USD 172.000 — USD 8.000 por debajo de su tope") y "Cumple X de las Y cosas que busca".
+4. **Parecido a lo descartado:** misma calle o el mismo problema que dio como motivo baja 15 puntos y lo dice.
+
+Las oportunidades se recalculan solas al cargar o importar una propiedad (contra todos los clientes activos), al editar una ficha, al cambiar descartes y al guardar una nota. Si superan el umbral de alerta del agente (75% por defecto) se crean como nuevas y aparecen en Hoy. Si dejan de encajar se borran, salvo que ya se hayan mandado o descartado.
+
+Caso Martina (en los tests): Gorriti 4800 da 92% y cumple 6 de 7; Av. Santa Fe 3900 queda afuera por avenida y Thames 1700 por planta baja.
 
 ## Datos
 

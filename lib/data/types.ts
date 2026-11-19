@@ -163,6 +163,9 @@ export type MatchReasons = {
   unconfirmed: string[];
   /** "No se parece a lo que descartó: …" o el parecido que encontró. */
   discard_note: string | null;
+  /** "Cumple 6 de las 7 cosas que busca". */
+  cumple?: number;
+  total?: number;
 };
 
 export type Match = {
