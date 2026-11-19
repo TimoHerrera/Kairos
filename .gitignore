@@ -49,3 +49,8 @@ next-env.d.ts
 
 # herramientas locales
 /.claude/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/

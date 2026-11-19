@@ -1,4 +1,4 @@
-import { buildDemoAgent, buildDemoData, DEMO_AGENT, type AgentData } from "../seed/build";
+import { buildDemoAgent, buildDemoData, DEMO_AGENT, PROPIEDADES_PARA_SIMULAR, propiedadDeSeed, type AgentData } from "../seed/build";
 import {
   DataError,
   isValidEmail,
@@ -285,6 +285,28 @@ export function createMockDataSource(
         Object.assign(agente, cambios);
         save(db);
         return agente;
+      },
+      async exportAll() {
+        const { agentId, db, mine } = scoped();
+        const agente = db.agents.find((a) => a.id === agentId);
+        return {
+          exportado: now().toISOString(),
+          agente,
+          clientes: mine(db.buyers),
+          fichas: mine(db.buyer_criteria),
+          notas: mine(db.notes),
+          propiedades: mine(db.properties),
+          descartes: mine(db.discards),
+          oportunidades: mine(db.matches),
+          mensajes: mine(db.messages),
+        };
+      },
+      async deleteAccount() {
+        const { agentId, db } = scoped();
+        clearAgentData(db, agentId);
+        db.agents = db.agents.filter((a) => a.id !== agentId);
+        save(db);
+        setSession(null);
       },
       async updateSettings(cambios) {
         const { agentId, db } = scoped();
@@ -606,6 +628,16 @@ export function createMockDataSource(
     },
 
     demo: {
+      async simulateProperty() {
+        const { agentId, db, mine } = scoped();
+        const cargadas = new Set(mine(db.properties).map((p) => normalizarDireccion(p.address)));
+        const proxima = PROPIEDADES_PARA_SIMULAR.find((p) => !cargadas.has(normalizarDireccion(p.address)));
+        if (!proxima) return null;
+        const propiedad = propiedadDeSeed(proxima, agentId, newId(), now());
+        db.properties.push(propiedad);
+        save(db);
+        return propiedad;
+      },
       async reset() {
         const { agentId, db } = scoped();
         clearAgentData(db, agentId);

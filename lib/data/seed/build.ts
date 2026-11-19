@@ -25,6 +25,45 @@ export const DEMO_AGENT = demo.agent;
 const HORA = 3_600_000;
 const DIA = 24 * HORA;
 
+type PropiedadSeed = (typeof demo.properties)[number];
+
+/** Una propiedad del seed, ya con el id y el agente. */
+export function propiedadDeSeed(p: PropiedadSeed, agentId: Id, id: Id, ahora: Date = new Date()): Property {
+  const publicado = new Date(ahora.getTime() - p.hours_ago * HORA).toISOString();
+  return {
+    id,
+    agent_id: agentId,
+    source: "demo",
+    url: null,
+    portal: p.portal as Property["portal"],
+    operation: "buy",
+    property_type: p.type as Property["property_type"],
+    address: p.address,
+    neighborhood: p.neighborhood,
+    subzone: p.subzone,
+    price: p.price,
+    currency: "USD",
+    expenses: p.expenses,
+    rooms: p.rooms,
+    bedrooms: p.bedrooms,
+    covered_m2: p.covered_m2,
+    total_m2: p.total_m2,
+    floor: p.floor,
+    orientation: p.orientation,
+    balcony: p.balcony,
+    on_avenue: p.on_avenue,
+    credit_eligible: p.credit as Property["credit_eligible"],
+    amenities: p.amenities,
+    photos: p.photo ? [p.photo] : [],
+    description: p.description,
+    published_at: publicado,
+    created_at: publicado,
+  };
+}
+
+/** Las propiedades que el modo demo puede "hacer entrar", en orden. */
+export const PROPIEDADES_PARA_SIMULAR: PropiedadSeed[] = demo.simular;
+
 /**
  * Arma los datos del prototipo para un agente.
  * Ningún id viene fijo del seed: se generan acá y todo queda con el agent_id recibido.
@@ -38,36 +77,7 @@ export function buildDemoData(agentId: Id, newId: () => Id, ahora: Date = new Da
   const properties: Property[] = demo.properties.map((p) => {
     const id = newId();
     propertyIds.set(p.key, id);
-    const publicado = iso(t - p.hours_ago * HORA);
-    return {
-      id,
-      agent_id: agentId,
-      source: "demo",
-      url: null,
-      portal: p.portal as Property["portal"],
-      operation: "buy",
-      property_type: p.type as Property["property_type"],
-      address: p.address,
-      neighborhood: p.neighborhood,
-      subzone: p.subzone,
-      price: p.price,
-      currency: "USD",
-      expenses: p.expenses,
-      rooms: p.rooms,
-      bedrooms: p.bedrooms,
-      covered_m2: p.covered_m2,
-      total_m2: p.total_m2,
-      floor: p.floor,
-      orientation: p.orientation,
-      balcony: p.balcony,
-      on_avenue: p.on_avenue,
-      credit_eligible: p.credit as Property["credit_eligible"],
-      amenities: p.amenities,
-      photos: p.photo ? [p.photo] : [],
-      description: p.description,
-      published_at: publicado,
-      created_at: publicado,
-    };
+    return propiedadDeSeed(p, agentId, id, ahora);
   });
 
   const buyerIds = new Map<string, Id>();

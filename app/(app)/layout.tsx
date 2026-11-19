@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from "react";
-import { SoloConSesion } from "@/components/app/guardas";
+import { RequiereBienvenida, SoloConSesion } from "@/components/app/guardas";
 import { Marco } from "@/components/app/pantalla";
 import { TabBar, TabBarBase } from "@/components/app/tab-bar";
 
@@ -8,6 +8,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <Marco>
       <SoloConSesion>
+        <RequiereBienvenida />
         {children}
         <Suspense fallback={<TabBarBase actual="" />}>
           <TabBar />

@@ -1,7 +1,7 @@
 import "server-only";
 import { proveedorIA } from "@/lib/ai/extract";
 import { leerAvisoConReglas } from "./reglas";
-import type { PedidoAviso, RespuestaAviso } from "./schema";
+import { AvisoExtraido, type PedidoAviso, type RespuestaAviso } from "./schema";
 
 /**
  * Prompt para leer un aviso con Claude (se conecta en la fase 7, como la extracción de notas).
@@ -21,7 +21,16 @@ Pasalo a datos con este criterio:
 
 export async function leerAviso(pedido: PedidoAviso): Promise<RespuestaAviso> {
   if (proveedorIA() === "anthropic") {
-    return { ok: false, error: "La IA real todavía no está conectada. Usá AI_PROVIDER=mock." };
+    const { pedirJson } = await import("@/lib/ai/claude");
+    const mensaje = `<aviso>
+${pedido.texto}
+</aviso>${pedido.url ? `
+
+Link del aviso (no lo abras): ${pedido.url}` : ""}`;
+    const r = await pedirJson({ sistema: SISTEMA_AVISO, mensaje, esquema: AvisoExtraido });
+    if (r.ok) return { ok: true, aviso: r.datos, proveedor: "anthropic" };
+    // Sin IA, las reglas igual completan buena parte del formulario.
+    return { ok: true, aviso: leerAvisoConReglas(pedido.texto, pedido.url), proveedor: "mock" };
   }
   return { ok: true, aviso: leerAvisoConReglas(pedido.texto, pedido.url), proveedor: "mock" };
 }

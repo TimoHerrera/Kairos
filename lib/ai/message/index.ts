@@ -16,8 +16,11 @@ export const SISTEMA_MENSAJE = `Redactás mensajes de WhatsApp de un agente inmo
 
 export async function redactarMensaje(pedido: PedidoMensaje): Promise<RespuestaMensaje> {
   if (proveedorIA() === "anthropic") {
-    // El proveedor de Claude se conecta en la fase 7; mientras tanto, la plantilla.
-    return { ok: true, texto: redactarConPlantilla(pedido), proveedor: "mock" };
+    const { pedirTexto } = await import("@/lib/ai/claude");
+    const r = await pedirTexto({ sistema: SISTEMA_MENSAJE, mensaje: `Datos para el mensaje:
+${JSON.stringify(pedido, null, 2)}` });
+    if (r.ok) return { ok: true, texto: r.datos, proveedor: "anthropic" };
+    // Si la IA no responde, la plantilla: el agente igual puede mandar el mensaje.
   }
   return { ok: true, texto: redactarConPlantilla(pedido), proveedor: "mock" };
 }

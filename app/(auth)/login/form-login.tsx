@@ -4,12 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Campo } from "@/components/ui/campo";
-import { DataError, getDataSource, isValidEmail } from "@/lib/data";
+import { DATA_SOURCE_KIND, DataError, getDataSource, isValidEmail } from "@/lib/data";
 
 export function FormLogin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [enviado, setEnviado] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<"email" | "demo" | null>(null);
 
   async function entrar(e: FormEvent) {
@@ -24,7 +25,9 @@ export function FormLogin() {
       await getDataSource().auth.signIn({ email });
       router.replace("/hoy");
     } catch (err) {
-      setError(err instanceof DataError ? err.message : "No pudimos entrar. Probá de nuevo.");
+      // Con Supabase se entra con un link al email: no es un error.
+      if (err instanceof DataError && err.code === "check_email") setEnviado(err.message);
+      else setError(err instanceof DataError ? err.message : "No pudimos entrar. Probá de nuevo.");
       setOcupado(null);
     }
   }
@@ -61,6 +64,11 @@ export function FormLogin() {
           {ocupado === "email" ? "Entrando…" : "Entrar"}
         </Button>
       </form>
+      {enviado ? (
+        <p role="status" className="mt-3 rounded-md bg-exito-tinte px-3 py-2.5 text-cuerpo-s text-exito">
+          {enviado}
+        </p>
+      ) : null}
 
       <div className="my-6 flex items-center gap-3 text-pie text-texto-suave">
         <span className="h-px flex-1 bg-linea" />o<span className="h-px flex-1 bg-linea" />
@@ -74,7 +82,9 @@ export function FormLogin() {
       </p>
 
       <p className="mt-8 text-pie text-texto-suave">
-        Versión de prueba: los datos se guardan solo en este dispositivo y no hace falta contraseña.
+        {DATA_SOURCE_KIND === "mock"
+          ? "Versión de prueba: los datos se guardan solo en este dispositivo y no hace falta contraseña."
+          : "Sin contraseñas: te mandamos un link al email para entrar."}
       </p>
     </div>
   );

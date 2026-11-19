@@ -17,7 +17,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | F4 | Propiedades: alta manual, pegar aviso, importar | Hecha (lectura de avisos en modo mock) |
 | F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Hecha |
 | F6 | Mensaje de WhatsApp, Web Push, bandeja | Hecha (mensaje por plantilla en modo mock) |
-| F7 | Supabase e IA reales, privacidad, modo demo, E2E, deploy | Pendiente |
+| F7 | Supabase e IA reales, privacidad, modo demo, E2E, deploy | Hecha (Supabase y Claude sin probar contra servicios reales) |
 
 ## Setup local
 
@@ -41,7 +41,10 @@ Con los valores por defecto de `.env.example` (todo en `mock`) la app funciona e
 | `npm run build` | Build de producción |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript sin emitir |
-| `npm test` | Tests con Vitest |
+| `npm test` | Tests unitarios con Vitest |
+| `npm run e2e` | Tests E2E con Playwright: arma un build y prueba el flujo completo a tamaño de teléfono |
+| `npm run vapid` | Genera las claves para los avisos push |
+| `npm run seed:sql` | Regenera `supabase/seed.sql` desde los datos de demo |
 
 ## Variables de entorno
 
@@ -114,7 +117,7 @@ Eso imprime las tres variables para `.env.local` y Vercel. En iPhone, los avisos
 Toda la app lee y escribe a través de una sola interfaz, [lib/data/source.ts](lib/data/source.ts). Hay dos implementaciones:
 
 - **mock** (por defecto): en memoria, guardada en `localStorage`. Imita la RLS: cada lectura filtra por el agente de la sesión.
-- **supabase**: se conecta en la F7. El esquema y la RLS ya están en [supabase/migrations](supabase/migrations).
+- **supabase**: [lib/data/supabase](lib/data/supabase/index.ts), con el SDK oficial. El esquema y la RLS están en [supabase/migrations](supabase/migrations).
 
 Ningún id viene fijo del seed: todo se crea con el id del agente logueado. Las keys de las queries empiezan con ese id y la caché se limpia al cerrar sesión.
 
@@ -124,7 +127,12 @@ En modo mock no hace falta contraseña: cualquier email crea una cuenta con la c
 
 ### Modo demo
 
-Con `NEXT_PUBLIC_DEMO_MODE=true`, en Perfil → Demo está **Restablecer datos de demo**. "Simular propiedad nueva" llega en la F7.
+Con `NEXT_PUBLIC_DEMO_MODE=true` (por defecto), en Perfil → Demo están:
+
+- **Simular propiedad nueva:** hace entrar una propiedad de ejemplo que le sirve a un cliente (primero Fitz Roy 1800 para Martina) y dispara el aviso en vivo. Es el momento clave de la presentación.
+- **Restablecer datos de demo:** vuelve a la cartera del prototipo.
+
+Para presentar: "Probar la demo" → bienvenida → Perfil → Simular propiedad nueva → el aviso en Hoy → la oportunidad → "Mandársela a Martina".
 
 ### Seed
 
@@ -142,7 +150,36 @@ select public.kairos_seed_demo('<uuid del agente>');
 
 ### Tests de RLS
 
-[supabase/tests/rls.test.sql](supabase/tests/rls.test.sql) (pgTAP) prueba que cada agente ve solo lo suyo. Corre con `supabase test db`, que necesita Supabase local y Docker. Todavía no se corrió: se valida al conectar Supabase en la F7.
+[supabase/tests/rls.test.sql](supabase/tests/rls.test.sql) (pgTAP) prueba que cada agente ve solo lo suyo. Corre con `supabase test db`, que necesita Supabase local y Docker. Todavía no se corrió en este repo.
+
+## Privacidad (Ley 25.326)
+
+- Cada agente ve solo lo suyo: en mock lo garantiza la capa de datos (con tests) y en Supabase, la RLS de la base (con tests pgTAP).
+- La primera vez, la **bienvenida** pide aceptar la [política de privacidad](app/privacidad/page.tsx), explica para qué son los permisos de micrófono y avisos, y cómo instalar la app.
+- Perfil → Privacidad: **Borrar el audio después de transcribir** (activado por defecto), **Exportar mis datos** (un JSON con todo) y **Borrar mi cuenta** (borra todo, sin vuelta atrás).
+- A la IA se le manda lo mínimo: el texto de la nota y un resumen de la ficha, o el nombre de pila y la propiedad. Nunca teléfonos ni emails.
+
+## Puesta en marcha con Supabase y Claude
+
+La app funciona entera en modo mock. Para usar la base y la IA reales:
+
+**Supabase**
+
+1. Creá un proyecto en [supabase.com](https://supabase.com).
+2. En el SQL Editor, corré en orden las migraciones de [supabase/migrations](supabase/migrations) y después [supabase/seed.sql](supabase/seed.sql), que define la función de la demo.
+3. En Authentication → Providers, dejá Email (con link mágico) y activá **Anonymous sign-ins**: así entra "Probar la demo".
+4. En Authentication → URL Configuration, agregá la URL de Vercel como Site URL y en Redirect URLs (`https://tu-app.vercel.app/hoy`).
+5. Cargá en Vercel `NEXT_PUBLIC_DATA_SOURCE=supabase`, `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API).
+
+Con Supabase se entra con un link al email, sin contraseña. Los tests de RLS ([supabase/tests/rls.test.sql](supabase/tests/rls.test.sql)) corren con `supabase test db` contra Supabase local (necesita Docker).
+
+**Claude**
+
+Cargá `AI_PROVIDER=anthropic` y `ANTHROPIC_API_KEY` (de [platform.claude.com](https://platform.claude.com)). El modelo es `claude-sonnet-5-5`, o el que pongas en `ANTHROPIC_MODEL`. Kairos le pide a Claude JSON validado con Zod; si no valida, reintenta una vez, y si vuelve a fallar muestra la transcripción para completar a mano. Están activados los *fallbacks* del servidor: si el modelo declina un pedido por política, se reintenta solo en otro modelo.
+
+**Avisos push:** `npm run vapid` y las tres variables que imprime.
+
+**Transcripción paga (opcional):** `TRANSCRIBE_PROVIDER=openai` y `OPENAI_API_KEY`.
 
 ## Diseño
 
