@@ -4,7 +4,7 @@ import { getDataSource, type Buyer, type BuyerCriteria, type MatchWithRefs } fro
 import { FINANCIACION, OPERACION, TIPO_PROPIEDAD, etiquetaCaracteristica } from "@/lib/domain/labels";
 import { resumenDeFicha, zonaPrincipal } from "@/lib/domain/resumen";
 import { formatMonto } from "@/lib/format";
-import { recalcularOportunidades } from "@/lib/match/recalcular";
+import { recalcularYAvisar } from "@/lib/push/avisar";
 import { normalizarTelefono } from "@/lib/format/telefono";
 
 const plano = (t: string) =>
@@ -142,7 +142,7 @@ export async function guardarNota({
   });
 
   // Con la ficha al día, se cruza con las propiedades cargadas.
-  const { nuevas } = await recalcularOportunidades(ds, { clienteIds: [cliente.id] });
+  const { nuevas } = await recalcularYAvisar(ds, { clienteIds: [cliente.id] });
 
   return { cliente, nuevo, frases, oportunidades: nuevas };
 }

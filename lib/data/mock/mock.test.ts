@@ -337,3 +337,31 @@ describe("propiedades", () => {
     await expect(ds.properties.create({ ...base, address: "Gorriti 4800" })).resolves.toMatchObject({ address: "Gorriti 4800" });
   });
 });
+
+describe("mensajes y avisos", () => {
+  it("guarda el mensaje mandado de una oportunidad", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const [m] = await ds.matches.list({ status: ["sent"] });
+    const msj = await ds.messages.create({ match_id: m.id, text: " Hola Martina ", tone: "shorter" });
+    expect(msj).toMatchObject({ text: "Hola Martina", tone: "shorter", sent_via: "whatsapp" });
+    expect(await ds.messages.listByMatch(m.id)).toHaveLength(1);
+    await expect(ds.messages.create({ match_id: "otra", text: "x", tone: "normal" })).rejects.toMatchObject({ code: "not_found" });
+  });
+
+  it("una suscripción por dispositivo, y solo del agente", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const sub = { endpoint: "https://fcm.googleapis.com/fcm/send/a", keys: { p256dh: "p", auth: "a" } };
+    await ds.push.save(sub);
+    await ds.push.save({ ...sub, keys: { p256dh: "p2", auth: "a2" } });
+    expect((await ds.push.list()).map((x) => x.keys.p256dh)).toEqual(["p2"]);
+    await ds.auth.signOut();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    expect(await ds.push.list()).toEqual([]);
+    await ds.auth.signOut();
+    await ds.auth.signInDemo();
+    await ds.push.remove(sub.endpoint);
+    expect(await ds.push.list()).toEqual([]);
+  });
+});

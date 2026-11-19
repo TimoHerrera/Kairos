@@ -2,10 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { resumenDeFicha } from "@/lib/domain/resumen";
-import { recalcularOportunidades } from "@/lib/match/recalcular";
+import { recalcularYAvisar } from "@/lib/push/avisar";
 import { useSession } from "@/lib/session/provider";
 import { getDataSource, type NewBuyer, type NewDiscard, type NewProperty } from "./index";
-import type { Buyer, BuyerCriteria, Id, MatchStatus } from "./types";
+import type { AgentSettings, Buyer, BuyerCriteria, Id, MatchStatus } from "./types";
 
 /**
  * Todas las keys empiezan con el id del agente: los datos de una sesión
@@ -129,7 +129,7 @@ export function useUpdateCriteria(buyer: Pick<Buyer, "id" | "name"> | null | und
       const ficha = await ds.buyers.updateCriteria(buyer.id, cambios);
       await ds.buyers.update(buyer.id, { summary: resumenDeFicha(ficha, buyer.name) });
       // Lo que busca cambió: puede haber oportunidades nuevas, o alguna que ya no le sirve.
-      await recalcularOportunidades(ds, { clienteIds: [buyer.id] });
+      await recalcularYAvisar(ds, { clienteIds: [buyer.id] });
       return ficha;
     },
     onSuccess: refrescar,
@@ -142,7 +142,7 @@ export function useAddDiscard(buyerId: Id) {
     mutationFn: async (datos: NewDiscard) => {
       const ds = getDataSource();
       const descarte = await ds.buyers.addDiscard(buyerId, datos);
-      await recalcularOportunidades(ds, { clienteIds: [buyerId] });
+      await recalcularYAvisar(ds, { clienteIds: [buyerId] });
       return descarte;
     },
     onSuccess: refrescar,
@@ -155,7 +155,7 @@ export function useRemoveDiscard(buyerId: Id) {
     mutationFn: async (discardId: Id) => {
       const ds = getDataSource();
       await ds.buyers.removeDiscard(discardId);
-      await recalcularOportunidades(ds, { clienteIds: [buyerId] });
+      await recalcularYAvisar(ds, { clienteIds: [buyerId] });
     },
     onSuccess: refrescar,
   });
@@ -188,7 +188,7 @@ export function useCreateProperty() {
       const ds = getDataSource();
       const propiedad = await ds.properties.create(datos);
       // Al cargar una propiedad se cruza con todos los clientes activos.
-      await recalcularOportunidades(ds, { propiedadIds: [propiedad.id] });
+      await recalcularYAvisar(ds, { propiedadIds: [propiedad.id] });
       return propiedad;
     },
     onSuccess: refrescar,
@@ -211,5 +211,22 @@ export function useSetMatchStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: Id; status: MatchStatus }) => getDataSource().matches.setStatus(id, status),
     onSuccess: refrescar,
+  });
+}
+
+export function useUpdateSettings() {
+  const refrescar = useRefrescar();
+  return useMutation({
+    mutationFn: (cambios: Partial<AgentSettings>) => getDataSource().agent.updateSettings(cambios),
+    onSuccess: refrescar,
+  });
+}
+
+export function useMatchMessages(matchId: Id) {
+  const { agentId, listo } = useAgentKey();
+  return useQuery({
+    queryKey: [agentId, "messages", matchId],
+    queryFn: () => getDataSource().messages.listByMatch(matchId),
+    enabled: listo,
   });
 }

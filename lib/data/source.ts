@@ -1,6 +1,8 @@
 import type {
   Agent,
   Match,
+  Message,
+  PushSubscriptionRow,
   AgentSettings,
   Buyer,
   BuyerCriteria,
@@ -57,6 +59,17 @@ export interface DataSource {
     setStatus(id: Id, status: MatchStatus): Promise<Match>;
     remove(id: Id): Promise<void>;
   };
+  messages: {
+    /** Guarda el mensaje que se mandó para una oportunidad. */
+    create(datos: NewMessage): Promise<Message>;
+    listByMatch(matchId: Id): Promise<Message[]>;
+  };
+  push: {
+    /** Guarda la suscripción de este dispositivo (si ya estaba, la actualiza). */
+    save(suscripcion: { endpoint: string; keys: { p256dh: string; auth: string } }): Promise<PushSubscriptionRow>;
+    list(): Promise<PushSubscriptionRow[]>;
+    remove(endpoint: string): Promise<void>;
+  };
   demo: {
     /** Borra los datos del agente actual y vuelve a cargar los del prototipo. */
     reset(): Promise<void>;
@@ -78,6 +91,8 @@ export type NewProperty = Omit<Property, "id" | "agent_id" | "created_at" | "pub
 };
 
 export type NewMatch = Pick<Match, "buyer_id" | "property_id" | "score" | "reasons" | "similar_to_discard">;
+
+export type NewMessage = Pick<Message, "match_id" | "text" | "tone">;
 
 export type NewDiscard = {
   property_id?: Id | null;

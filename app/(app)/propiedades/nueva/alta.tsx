@@ -16,7 +16,7 @@ import { DataError, getDataSource } from "@/lib/data";
 import { useSession } from "@/lib/session/provider";
 import { useQueryClient } from "@tanstack/react-query";
 import { filasAPropiedades, parsearCsv, type FilaImportada } from "@/lib/domain/csv";
-import { recalcularOportunidades } from "@/lib/match/recalcular";
+import { recalcularYAvisar } from "@/lib/push/avisar";
 import { BORRADOR_VACIO, avisoABorrador, type Borrador } from "@/lib/domain/propiedad";
 
 type Modo = "manual" | "pegar" | "importar";
@@ -217,7 +217,7 @@ function Importar() {
         else r.fallidas.push(`Fila ${f.numero}`);
       }
     }
-    if (ids.length) r.oportunidades = (await recalcularOportunidades(ds, { propiedadIds: ids })).nuevas.length;
+    if (ids.length) r.oportunidades = (await recalcularYAvisar(ds, { propiedadIds: ids })).nuevas.length;
     await queryClient.invalidateQueries({ queryKey: [sesion?.agentId] });
     setResultado(r);
     setFilas(null);
