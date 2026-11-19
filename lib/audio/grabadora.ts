@@ -13,6 +13,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 
 export type ModoTranscripcion = "webspeech" | "openai" | "mock";
+/** Lo que configura el servidor: "auto" elige el micrófono real si el navegador lo permite. */
+export type ModoConfigurado = ModoTranscripcion | "auto";
 export type EstadoGrabacion = "inactivo" | "pidiendo" | "grabando" | "transcribiendo" | "listo" | "error";
 
 export const LIMITE_SEGUNDOS = 180;
@@ -248,8 +250,20 @@ export function useGrabadora({ modo, guion }: { modo: ModoTranscripcion; guion?:
         setTexto((r.finales + provisorio).trim());
       };
       reconocedor.onerror = (e) => {
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-          setError("El navegador no dejó transcribir. Podés escribir la nota.");
+        // "no-speech" y "aborted" son normales; el resto corta la transcripción en vivo.
+        if (e.error === "no-speech" || e.error === "aborted") return;
+        const mensaje =
+          e.error === "network"
+            ? "Se cortó la conexión con el servicio de voz. Revisá internet o escribí la nota."
+            : e.error === "audio-capture"
+              ? "No encuentro un micrófono. Revisá que esté conectado o escribí la nota."
+              : "El navegador no dejó transcribir. Podés escribir la nota.";
+        setError(mensaje);
+        // Sin esto, onend lo vuelve a arrancar y falla en bucle.
+        r.reconocedor = null;
+        if (modo === "webspeech") {
+          liberar();
+          setEstado(r.finales.trim() ? "listo" : "error");
         }
       };
       // El navegador corta solo tras un silencio: si seguimos grabando, se reanuda.
