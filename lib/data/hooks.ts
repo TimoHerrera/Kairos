@@ -215,10 +215,16 @@ export function useSetMatchStatus() {
 }
 
 export function useUpdateSettings() {
+  const { agentId } = useAgentKey();
+  const queryClient = useQueryClient();
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (cambios: Partial<AgentSettings>) => getDataSource().agent.updateSettings(cambios),
-    onSuccess: refrescar,
+    // El perfil nuevo entra a la caché al instante: las guardas no leen una versión vieja.
+    onSuccess: (agente) => {
+      queryClient.setQueryData([agentId, "agent"], agente);
+      return refrescar();
+    },
   });
 }
 

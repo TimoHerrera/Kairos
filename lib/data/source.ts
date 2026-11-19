@@ -30,6 +30,10 @@ export interface DataSource {
     get(): Promise<Agent>;
     update(cambios: Partial<Pick<Agent, "name" | "phone" | "office" | "work_zone">>): Promise<Agent>;
     updateSettings(cambios: Partial<AgentSettings>): Promise<Agent>;
+    /** Todos los datos del agente, para descargar (Ley 25.326: derecho de acceso). */
+    exportAll(): Promise<Record<string, unknown>>;
+    /** Borra la cuenta y todos sus datos, y cierra la sesión. No se puede deshacer. */
+    deleteAccount(): Promise<void>;
   };
   buyers: {
     list(filtro?: { status?: BuyerStatus }): Promise<Buyer[]>;
@@ -73,6 +77,8 @@ export interface DataSource {
   demo: {
     /** Borra los datos del agente actual y vuelve a cargar los del prototipo. */
     reset(): Promise<void>;
+    /** Hace entrar la próxima propiedad de demo que todavía no esté cargada. null si ya entraron todas. */
+    simulateProperty(): Promise<Property | null>;
   };
 }
 
@@ -113,7 +119,7 @@ export interface AuthApi {
   signOut(): Promise<void>;
 }
 
-export type DataErrorCode = "duplicate_email" | "duplicate" | "not_found" | "no_session" | "invalid" | "not_implemented";
+export type DataErrorCode = "duplicate_email" | "duplicate" | "check_email" | "not_found" | "no_session" | "invalid" | "not_implemented";
 
 export class DataError extends Error {
   constructor(

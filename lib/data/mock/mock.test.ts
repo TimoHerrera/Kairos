@@ -365,3 +365,43 @@ describe("mensajes y avisos", () => {
     expect(await ds.push.list()).toEqual([]);
   });
 });
+
+describe("modo demo y privacidad", () => {
+  it("simular hace entrar las propiedades de demo una por una, sin repetir", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    const a = await ds.demo.simulateProperty();
+    const b = await ds.demo.simulateProperty();
+    const c = await ds.demo.simulateProperty();
+    expect([a?.address, b?.address, c?.address]).toEqual(["Fitz Roy 1800", "Lerma 400", "Melián 2400"]);
+    expect(await ds.demo.simulateProperty()).toBeNull();
+    expect(await ds.properties.list()).toHaveLength(33);
+  });
+
+  it("exportar trae solo los datos del agente", async () => {
+    const { ds } = nueva();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    await ds.buyers.create({ name: "Cliente ajeno" });
+    await ds.auth.signOut();
+    await ds.auth.signInDemo();
+    const datos = (await ds.agent.exportAll()) as { clientes: Array<{ name: string }>; propiedades: unknown[] };
+    expect(datos.clientes.map((c) => c.name)).not.toContain("Cliente ajeno");
+    expect(datos.clientes).toHaveLength(5);
+    expect(datos.propiedades).toHaveLength(30);
+  });
+
+  it("borrar la cuenta borra todo y cierra la sesión, sin tocar a otros", async () => {
+    const { ds, storage } = nueva();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    await ds.buyers.create({ name: "Cliente de otra" });
+    await ds.auth.signOut();
+    const { agentId } = await ds.auth.signInDemo();
+    await ds.agent.deleteAccount();
+    expect(ds.auth.getSession()).toBeNull();
+    const db = JSON.parse(storage.getItem(DB_KEY)!);
+    expect(db.agents.some((a: { id: string }) => a.id === agentId)).toBe(false);
+    expect(db.buyers.some((b: { agent_id: string }) => b.agent_id === agentId)).toBe(false);
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    expect((await ds.buyers.list()).map((c) => c.name)).toEqual(["Cliente de otra"]);
+  });
+});
