@@ -17,7 +17,7 @@ const num = (t: string) => NUMEROS[t] ?? Number(t);
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-const BARRIOS = [
+export const BARRIOS = [
   "Palermo", "Belgrano", "Villa Crespo", "Caballito", "Colegiales", "Núñez", "Almagro", "Recoleta", "Barrio Norte",
   "Villa Urquiza", "Coghlan", "Saavedra", "Flores", "Boedo", "San Telmo", "Puerto Madero", "Retiro", "Chacarita",
   "Villa Devoto", "Villa del Parque", "Villa Ortúzar", "Parque Patricios", "Olivos", "Vicente López", "Martínez",
@@ -25,7 +25,7 @@ const BARRIOS = [
 ];
 
 /** Subzona → barrio al que pertenece. */
-const SUBZONAS: Record<string, string> = {
+export const SUBZONAS: Record<string, string> = {
   Soho: "Palermo",
   Hollywood: "Palermo",
   Chico: "Palermo",
@@ -36,9 +36,9 @@ const SUBZONAS: Record<string, string> = {
 };
 
 /** Avenidas conocidas: un descarte "por el ruido" en una de estas es un "no quiere avenida". */
-const AVENIDAS = ["santa fe", "cabildo", "corrientes", "rivadavia", "cordoba", "libertador", "las heras", "pueyrredon", "callao", "medrano", "lacroze", "scalabrini", "juan b. justo", "triunvirato", "alvear"];
+export const AVENIDAS = ["santa fe", "cabildo", "corrientes", "rivadavia", "cordoba", "libertador", "las heras", "pueyrredon", "callao", "medrano", "lacroze", "scalabrini", "juan b. justo", "triunvirato", "alvear"];
 
-const CARACTERISTICAS: Array<[string, RegExp]> = [
+export const CARACTERISTICAS_RE: Array<[string, RegExp]> = [
   ["balcon", /balcon/],
   ["luminoso", /luminos|mucha luz|luz natural/],
   ["planta_baja", /planta baja|\bpb\b/],
@@ -206,7 +206,7 @@ export function extraerConReglas(texto: string, ahora: Date = new Date()): NotaE
     }
 
     const negativa = NEGACION.test(o);
-    const caracteristicas = CARACTERISTICAS.filter(([, re]) => re.test(o)).map(([clave]) => clave);
+    const caracteristicas = CARACTERISTICAS_RE.filter(([, re]) => re.test(o)).map(([clave]) => clave);
 
     if (negativa && ultimaPropiedad && !propiedad) {
       // "Recién vi el de Thames. Le gustó la zona pero es planta baja, y no quiere."

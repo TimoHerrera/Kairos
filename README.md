@@ -14,7 +14,7 @@ Proyecto de tesis · Universidad de San Andrés.
 | F1 | Capa de datos mock, auth, layouts y tab bar, seed, migraciones y RLS | Hecha |
 | F2 | Clientes y ficha editable | Hecha |
 | F3 | Nueva nota: grabación, transcripción, extracción a ficha | Hecha (IA en modo mock) |
-| F4 | Propiedades: alta manual, pegar aviso, importar | Pendiente |
+| F4 | Propiedades: alta manual, pegar aviso, importar | Hecha (lectura de avisos en modo mock) |
 | F5 | Motor de coincidencias, detalle de oportunidad, Hoy | Pendiente |
 | F6 | Mensaje de WhatsApp, Web Push, bandeja | Pendiente |
 | F7 | Supabase e IA reales, privacidad, modo demo, E2E, deploy | Pendiente |
@@ -68,6 +68,16 @@ Están documentadas en [.env.example](.env.example). Las que no empiezan con `NE
 La extracción de la ficha corre siempre en el servidor (`/api/ai/extract`). Con `AI_PROVIDER=mock` usa reglas locales que entienden las notas de la demo; el proveedor de Claude se conecta en la F7 (el prompt ya está en [lib/ai/extract/prompt.ts](lib/ai/extract/prompt.ts)). A la IA se le manda solo el texto de la nota y un resumen de la ficha, nunca el teléfono ni el email del cliente.
 
 En modo mock los audios no se guardan: la nota queda con la transcripción. Guardarlos en Supabase Storage llega con la F7.
+
+## Propiedades
+
+Sin scraping: los términos de los portales suelen prohibirlo y se rompe seguido. Las propiedades entran de tres formas, desde Propiedades → **Cargar**:
+
+- **A mano:** con dirección, barrio, precio y ambientes alcanza.
+- **Pegar aviso:** el agente copia el texto del aviso (y el link, si quiere). Kairos completa el formulario, marca lo que no quedó claro y el agente revisa antes de guardar. No se entra al link. En modo mock lo lee con reglas locales; con Claude, en la F7.
+- **Importar CSV:** con la [plantilla](public/plantillas/propiedades.csv), separada por punto y coma como la guarda Excel en castellano. Desde Excel: Archivo → Guardar como → CSV. Los errores se muestran por número de fila. Excel (.xlsx) directo no se lee todavía.
+
+Una dirección ya cargada no se repite, aunque esté escrita distinto ("Gorriti al 4800" es "Gorriti 4800"). Las integraciones con portales o feeds oficiales quedan para más adelante, detrás de [lib/sources](lib/sources/index.ts).
 
 ## Datos
 

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { resumenDeFicha } from "@/lib/domain/resumen";
 import { useSession } from "@/lib/session/provider";
-import { getDataSource, type NewBuyer, type NewDiscard } from "./index";
+import { getDataSource, type NewBuyer, type NewDiscard, type NewProperty } from "./index";
 import type { Buyer, BuyerCriteria, Id, MatchStatus } from "./types";
 
 /**
@@ -145,6 +145,34 @@ export function useRemoveDiscard() {
   const refrescar = useRefrescar();
   return useMutation({
     mutationFn: (discardId: Id) => getDataSource().buyers.removeDiscard(discardId),
+    onSuccess: refrescar,
+  });
+}
+
+// --- Propiedades --------------------------------------------------------------
+
+export function useProperty(id: Id) {
+  const { agentId, listo } = useAgentKey();
+  return useQuery({
+    queryKey: [agentId, "properties", id],
+    queryFn: () => getDataSource().properties.get(id),
+    enabled: listo,
+  });
+}
+
+export function usePropertyMatches(id: Id) {
+  const { agentId, listo } = useAgentKey();
+  return useQuery({
+    queryKey: [agentId, "matches", "property", id],
+    queryFn: () => getDataSource().matches.list({ propertyId: id }),
+    enabled: listo,
+  });
+}
+
+export function useCreateProperty() {
+  const refrescar = useRefrescar();
+  return useMutation({
+    mutationFn: (datos: NewProperty) => getDataSource().properties.create(datos),
     onSuccess: refrescar,
   });
 }

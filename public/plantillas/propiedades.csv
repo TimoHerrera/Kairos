@@ -1,0 +1,4 @@
+direccion;barrio;subzona;operacion;tipo;precio;moneda;expensas;ambientes;dormitorios;m2_cubiertos;m2_totales;piso;orientacion;balcon;sobre_avenida;apto_credito;amenities;url;descripcion
+Thames 2100;Palermo;Soho;compra;departamento;189000;USD;150000;3;2;68;72;3;Norte;si;no;a confirmar;luminoso|ascensor;;3 ambientes reciclado
+Av. Corrientes 4800;Villa Crespo;;compra;departamento;115000;USD;95000;2;1;45;45;6;Este;si;si;si;ascensor;;
+Zabala 2900;Colegiales;;alquiler;ph;850000;ARS;12000;3;2;80;110;PB;;no;no;no;patio|terraza;;PH con patio

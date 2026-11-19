@@ -45,6 +45,8 @@ export interface DataSource {
   properties: {
     list(): Promise<Property[]>;
     get(id: Id): Promise<Property | null>;
+    /** Si ya hay una con la misma dirección, avisa con DataError("duplicate") en vez de crearla. */
+    create(datos: NewProperty): Promise<Property>;
   };
   matches: {
     list(filtro?: { status?: MatchStatus[]; buyerId?: Id; propertyId?: Id }): Promise<MatchWithRefs[]>;
@@ -65,6 +67,10 @@ export type NewBuyer = {
 export type NewNote = Pick<Note, "kind" | "transcript"> &
   Partial<Pick<Note, "audio_path" | "duration_seconds" | "extracted_json" | "changes">>;
 
+export type NewProperty = Omit<Property, "id" | "agent_id" | "created_at" | "published_at"> & {
+  published_at?: string;
+};
+
 export type NewDiscard = {
   property_id?: Id | null;
   property_text?: string | null;
@@ -84,7 +90,7 @@ export interface AuthApi {
   signOut(): Promise<void>;
 }
 
-export type DataErrorCode = "duplicate_email" | "not_found" | "no_session" | "invalid" | "not_implemented";
+export type DataErrorCode = "duplicate_email" | "duplicate" | "not_found" | "no_session" | "invalid" | "not_implemented";
 
 export class DataError extends Error {
   constructor(
@@ -105,4 +111,17 @@ export function normalizeEmail(email: string): string {
 
 export function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizeEmail(email));
+}
+
+/** Dirección comparable: sin tildes, mayúsculas, "Av." ni espacios de más. "Av. Santa Fe 3900" → "santa fe 3900" */
+export function normalizarDireccion(direccion: string): string {
+  return direccion
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/^(av\.?|avda\.?|avenida)\s+/, "")
+    .replace(/\s+al\s+(?=\d)/, " ")
+    .replace(/[.,]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }

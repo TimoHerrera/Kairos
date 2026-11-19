@@ -277,3 +277,63 @@ describe("notas", () => {
     await expect(ds.buyers.addNote(martina.id, { kind: "text", transcript: "Hola" })).rejects.toMatchObject({ code: "not_found" });
   });
 });
+
+describe("propiedades", () => {
+  const base = {
+    source: "manual" as const,
+    url: null,
+    portal: null,
+    operation: "buy" as const,
+    property_type: "apartment" as const,
+    address: "Malabia 1200",
+    neighborhood: "Palermo",
+    subzone: "Soho",
+    price: 199000,
+    currency: "USD" as const,
+    expenses: 160000,
+    rooms: 3,
+    bedrooms: 2,
+    covered_m2: 70,
+    total_m2: 75,
+    floor: 5,
+    orientation: "Norte",
+    balcony: true,
+    on_avenue: false,
+    credit_eligible: "unconfirmed" as const,
+    amenities: ["luminoso"],
+    photos: [],
+    description: null,
+  };
+
+  it("carga una propiedad nueva para el agente de la sesión", async () => {
+    const { ds } = nueva();
+    const { agentId } = await ds.auth.signInDemo();
+    const p = await ds.properties.create({ ...base, address: "  Malabia 1200 " });
+    expect(p).toMatchObject({ agent_id: agentId, address: "Malabia 1200", source: "manual" });
+    expect(await ds.properties.list()).toHaveLength(31);
+    expect((await ds.properties.list())[0].id).toBe(p.id);
+  });
+
+  it("avisa si la dirección ya está cargada, aunque esté escrita distinto", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    await expect(ds.properties.create({ ...base, address: "Santa Fe 3900" })).rejects.toMatchObject({
+      code: "duplicate",
+      existing: { name: "Av. Santa Fe 3900" },
+    });
+    await expect(ds.properties.create({ ...base, address: "gorriti al 4800" })).rejects.toMatchObject({ code: "duplicate" });
+  });
+
+  it("valida lo mínimo", async () => {
+    const { ds } = nueva();
+    await ds.auth.signInDemo();
+    await expect(ds.properties.create({ ...base, price: 0 })).rejects.toMatchObject({ code: "invalid" });
+    await expect(ds.properties.create({ ...base, neighborhood: " " })).rejects.toMatchObject({ code: "invalid" });
+  });
+
+  it("otro agente puede cargar la misma dirección", async () => {
+    const { ds } = nueva();
+    await ds.auth.signIn({ email: "otra@ejemplo.com" });
+    await expect(ds.properties.create({ ...base, address: "Gorriti 4800" })).resolves.toMatchObject({ address: "Gorriti 4800" });
+  });
+});

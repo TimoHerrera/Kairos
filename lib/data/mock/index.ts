@@ -7,6 +7,8 @@ import {
   type NewBuyer,
   type NewDiscard,
   type NewNote,
+  type NewProperty,
+  normalizarDireccion,
   type Session,
 } from "../source";
 import {
@@ -16,6 +18,7 @@ import {
   type BuyerCriteria,
   type Discard,
   type Note,
+  type Property,
   type Id,
   type MatchWithRefs,
   type Message,
@@ -443,6 +446,36 @@ export function createMockDataSource(
       async get(id) {
         const { db, mine } = scoped();
         return mine(db.properties).find((p) => p.id === id) ?? null;
+      },
+      async create(datos: NewProperty) {
+        const { agentId, db, mine } = scoped();
+        const direccion = datos.address.trim();
+        if (direccion.length < 3) throw new DataError("invalid", "Falta la dirección.");
+        if (!datos.neighborhood.trim()) throw new DataError("invalid", "Falta el barrio.");
+        if (!(datos.price > 0)) throw new DataError("invalid", "El precio tiene que ser mayor a cero.");
+        if (!(datos.rooms >= 1)) throw new DataError("invalid", "Indicá cuántos ambientes tiene.");
+        const clave = normalizarDireccion(direccion);
+        const repetida = mine(db.properties).find((p) => normalizarDireccion(p.address) === clave);
+        if (repetida) {
+          throw new DataError("duplicate", `Ya tenés cargada ${repetida.address}.`, {
+            id: repetida.id,
+            name: repetida.address,
+          });
+        }
+        const ahora = now().toISOString();
+        const propiedad: Property = {
+          ...datos,
+          id: newId(),
+          agent_id: agentId,
+          address: direccion,
+          neighborhood: datos.neighborhood.trim(),
+          subzone: datos.subzone?.trim() || null,
+          published_at: datos.published_at ?? ahora,
+          created_at: ahora,
+        };
+        db.properties.push(propiedad);
+        save(db);
+        return propiedad;
       },
     },
 
