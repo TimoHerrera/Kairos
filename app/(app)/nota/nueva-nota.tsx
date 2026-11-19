@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, ChevronDown, CircleAlert, Mic, Square, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { Pantalla } from "@/components/app/pantalla";
 import { Avatar } from "@/components/ui/avatar";
 import { Bajada, Eyebrow, Titulo } from "@/components/ui/bloque";
@@ -15,7 +15,15 @@ import { ChipBoton } from "@/components/ui/chip";
 import { Hoja } from "@/components/ui/hoja";
 import type { NotaExtraida } from "@/lib/ai/extract/schema";
 import { guionMock } from "@/lib/ai/transcribe/guiones";
-import { BARRAS, LIMITE_SEGUNDOS, formatDuracion, useGrabadora, type ModoTranscripcion } from "@/lib/audio/grabadora";
+import {
+  BARRAS,
+  LIMITE_SEGUNDOS,
+  formatDuracion,
+  hayTranscripcionEnVivo,
+  useGrabadora,
+  type ModoConfigurado,
+  type ModoTranscripcion,
+} from "@/lib/audio/grabadora";
 import { cn } from "@/lib/cn";
 import { getDataSource, type Buyer } from "@/lib/data";
 import { useAgent, useBuyers } from "@/lib/data/hooks";
@@ -32,7 +40,9 @@ type Paso =
 
 const primerNombre = (n: string) => n.split(" ")[0];
 
-export function NuevaNota({ modo }: { modo: ModoTranscripcion }) {
+const sinSuscripcion = () => () => {};
+
+export function NuevaNota({ modo: configurado }: { modo: ModoConfigurado }) {
   const router = useRouter();
   const params = useSearchParams();
   const sesion = useSession();
@@ -46,6 +56,12 @@ export function NuevaNota({ modo }: { modo: ModoTranscripcion }) {
   const [escrito, setEscrito] = useState("");
   const [paso, setPaso] = useState<Paso>({ tipo: "capturar" });
   const [error, setError] = useState<string | null>(null);
+
+  // El navegador transcribe en vivo? Solo se sabe en el cliente.
+  const soportaVoz = useSyncExternalStore(sinSuscripcion, hayTranscripcionEnVivo, () => false);
+  const [usarEjemplo, setUsarEjemplo] = useState(configurado === "mock");
+  const modo: ModoTranscripcion = usarEjemplo ? "mock" : configurado === "auto" ? "webspeech" : configurado;
+  const sinVozEnVivo = !usarEjemplo && modo === "webspeech" && !soportaVoz;
 
   const lista = useMemo(() => clientes.data ?? [], [clientes.data]);
   const cliente = clienteId ? (lista.find((c) => c.id === clienteId) ?? null) : null;
@@ -338,6 +354,23 @@ export function NuevaNota({ modo }: { modo: ModoTranscripcion }) {
             <Bajada className="mt-1">Hablá tranquila, después yo lo ordeno.</Bajada>
           </div>
 
+          {sinVozEnVivo ? (
+            <Card className="mt-6">
+              <p className="text-[15px] leading-5 font-semibold text-tinta">Este navegador no transcribe en vivo</p>
+              <p className="mt-1 text-cuerpo-s text-texto">
+                Probá desde Chrome o Edge. Mientras tanto, escribí la nota o usá la nota de ejemplo para ver cómo funciona.
+              </p>
+              <div className="mt-3 flex flex-col gap-2">
+                <Button variante="secundario" ancho="completo" onClick={() => setForma("escribir")}>
+                  Escribir la nota
+                </Button>
+                <Button variante="terciario" ancho="completo" onClick={() => setUsarEjemplo(true)}>
+                  Usar la nota de ejemplo
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <>
           <Onda niveles={grabadora.niveles} activa={grabadora.estado === "grabando"} />
 
           <div className="flex flex-col items-center">
@@ -361,6 +394,26 @@ export function NuevaNota({ modo }: { modo: ModoTranscripcion }) {
               <span className="font-semibold text-tinta tabular-nums">{formatDuracion(grabadora.segundos)}</span> /{" "}
               {formatDuracion(LIMITE_SEGUNDOS)}
             </p>
+            {grabadora.estado === "inactivo" || grabadora.estado === "error" ? (
+              usarEjemplo ? (
+                <p className="mt-1 text-center text-pie text-texto-suave">
+                  Nota de ejemplo, sin micrófono.{" "}
+                  {configurado !== "mock" ? (
+                    <button type="button" onClick={() => setUsarEjemplo(false)} className="inline-flex min-h-11 items-center font-semibold text-acento underline underline-offset-2">
+                      Usar el micrófono
+                    </button>
+                  ) : null}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setUsarEjemplo(true)}
+                  className="mt-1 inline-flex min-h-11 items-center text-pie font-semibold text-acento underline underline-offset-2"
+                >
+                  Usar la nota de ejemplo
+                </button>
+              )
+            ) : null}
           </div>
 
           <Card className="mt-5">
@@ -402,6 +455,8 @@ export function NuevaNota({ modo }: { modo: ModoTranscripcion }) {
               </p>
             )}
           </Card>
+            </>
+          )}
         </>
       ) : (
         <div className="mt-6">

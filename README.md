@@ -52,7 +52,7 @@ Están documentadas en [.env.example](.env.example). Las que no empiezan con `NE
 | `NEXT_PUBLIC_DATA_SOURCE` | `mock` · `supabase` | De dónde salen los datos |
 | `AI_PROVIDER` | `mock` · `anthropic` | Extracción de la ficha y redacción del mensaje |
 | `ANTHROPIC_MODEL` | por defecto `claude-sonnet-5-5` | Modelo de Claude |
-| `TRANSCRIBE_PROVIDER` | `mock` · `webspeech` · `openai` | Transcripción del audio (ver abajo) |
+| `TRANSCRIBE_PROVIDER` | vacío · `mock` · `webspeech` · `openai` | Transcripción del audio (ver abajo) |
 | `NEXT_PUBLIC_DEMO_MODE` | `true` · `false` | Muestra Perfil → Demo |
 
 ## Notas de voz
@@ -61,9 +61,12 @@ Están documentadas en [.env.example](.env.example). Las que no empiezan con `NE
 
 | `TRANSCRIBE_PROVIDER` | Qué hace |
 |---|---|
-| `mock` (por defecto) | No usa el micrófono: "escucha" textos fijos de la demo. Para presentar sin depender de la red. |
-| `webspeech` | El navegador transcribe en vivo, en español rioplatense. Gratis. Anda bien en Chrome y Edge; en iPhone es irregular. |
-| `openai` | Graba el audio y lo transcribe el servidor al terminar. Necesita `OPENAI_API_KEY`. |
+| sin configurar (por defecto) | Micrófono real: el navegador transcribe en vivo, en español rioplatense, gratis. Anda bien en Chrome y Edge. Donde no se puede (por ejemplo, iPhone), ofrece escribir o usar la nota de ejemplo. |
+| `mock` | Siempre la nota de ejemplo, sin micrófono. Para presentar sin depender de la red. |
+| `webspeech` | Siempre el micrófono del navegador. |
+| `openai` | Graba el audio y lo transcribe el servidor al terminar. Necesita `OPENAI_API_KEY` (pago). |
+
+Con el micrófono del navegador, Chrome manda el audio a Google para transcribirlo; la pantalla avisa que el audio se procesa con un servicio de IA.
 
 La extracción de la ficha corre siempre en el servidor (`/api/ai/extract`). Con `AI_PROVIDER=mock` usa reglas locales que entienden las notas de la demo; el proveedor de Claude se conecta en la F7 (el prompt ya está en [lib/ai/extract/prompt.ts](lib/ai/extract/prompt.ts)). A la IA se le manda solo el texto de la nota y un resumen de la ficha, nunca el teléfono ni el email del cliente.
 
